@@ -1,0 +1,14 @@
+#update README file on master branch
+#profile the script
+#Run genx modeling file in parallel using mpi4py Python extention module
+#genx is the folder storing the source code to run genx file
+#Genx_run_multiple_mpi.py is the script file to launch the mpi code, you need to edit the genx path in the file
+#The GUI interface is not supported here
+#To start a new model fit run the following command:
+mpirun --mca mpi_warn_on_fork 0 -np 125  python ./GenX_run_multiple_mpi.py genxfile.gx
+#A mpirun environment is needed to have it work anyhow
+#PBS script is necessary to Run a model on a cluster with the Torque Job schduling system
+#use "qsub script.pbs" to summit a job
+#check the status of summited job use "qstat -u username" or just "qmap"
+
+
