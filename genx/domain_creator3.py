@@ -1338,6 +1338,41 @@ class domain_creator():
                 
                 self.scale_opt2(self._extract_list(atm_gp_list,index_list),scale_factor,sign_values,flag,ref_v)
         f.close()
+    #this function do the same thing as the previous one, but it call open/close file only once by assigning the file content to self.scale_opt_arr
+    def scale_opt_batch2b(self,filename):
+        
+        try:
+            test=self.scale_opt_arr
+        except:
+            self.extract_scale_opts(filename)
+        for line in self.scale_opt_arr:
+            atm_gp_list=vars(self)[line[0]]
+            index_list=self.split_number(line[1])
+            scale_factor=vars(self)[line[2]]
+            sign_values=0.
+            if line[3]=='None':
+                sign_values=None
+            else:
+                sign_values=vars(self)[line[3]]
+            flag=line[4]
+            ref_v=0.
+            try:
+                ref_v=float(line[5])
+            except:
+                ref_v=vars(self)[line[5]]
+            
+            self.scale_opt2(self._extract_list(atm_gp_list,index_list),scale_factor,sign_values,flag,ref_v)
+        
+        
+    def extract_scale_opts(self,filename):
+        self.scale_opt_arr=np.array([[0,0,0,0,0,0]])[0:0]
+        f=open(filename)
+        lines=f.readlines()
+        for line in lines:
+            if line[0]!='#':
+                line_split=line.rsplit(',')
+                self.scale_opt_arr=np.append(self.scale_opt_arr,[[line_split[i] for i in range(6)]],axis=0)
+        f.close()
         
     def scale_opt3(self,atm_gp_list,scale_factor,sign_values=None,flag='u',ref_v=1.):
         #scale the parameter from first layer atom to deeper layer atom
@@ -1437,7 +1472,45 @@ class domain_creator():
                     for i in range(len(line_split)-3):
                         tmp_list.append(self.norm_sign(getattr(self.new_var_module,line_split[i+2])))
                     setattr(self,line_split[1],tmp_list)
+        f.close()
+    #this function do the same thing as the previous one, but it only do open/close file once by assigning the file content to
+    #list of self.sim_val
+    def init_sim_batch2(self,filename):
+        try:
+            test=self.sim_val
+        except:
+            self.extract_sim(filename)
+        #print self.sim_val
+        for line in self.sim_val:
+
+            if (line[0]=='ocu')|(line[0]=='scale'):
+                tmp_list=[]
+                for i in range(len(line)-2):
+                    #print line
+                    tmp_list.append(getattr(self.new_var_module,line[i+2]))
+                setattr(self,line[1],tmp_list)
+            elif line[0]=='ref':
+                tmp=getattr(vars(self)[line[2]],line[3])()
+                setattr(self,line[1],tmp)
+            elif line[0]=='ref_new':
+                tmp=getattr(self.new_var_module,line[2])
+                setattr(self,line[1],tmp)
+            elif line_split[0]=='sign':
+                tmp_list=[]
+                for i in range(len(line)-2):
+                    tmp_list.append(self.norm_sign(getattr(self.new_var_module,line[i+2])))
+                setattr(self,line[1],tmp_list)
                     
+    def extract_sim(self,filename):
+        self.sim_val=[]
+        f=open(filename)
+        lines=f.readlines()
+        for line in lines:
+            if line[0]!='#':
+                line_split=list(line.rsplit(','))
+                self.sim_val.append(line_split[:-1])
+        f.close()
+                
     def adding_oxygen_pair_sphere(self,domain,o_id_list=[],sorbate_id='O_1',r=1.,theta_list=[],phi_list=[]):
         #sorbate_coor and r are in angstrom
         #the sorbate_coor is the origin of a sphere, oxygen added at point determined by r theta and phi
