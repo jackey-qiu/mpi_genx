@@ -8,6 +8,37 @@ import sys
 sys.path.append('\\home\\tlab\\Desktop\\genx2.0.0\\polyhedra-geometry')
 import hexahedra,hexahedra_distortion,tetrahedra,octahedra,tetrahedra_edge_distortion,trigonal_pyramid_distortion,trigonal_pyramid_distortion_shareface,trigonal_pyramid_distortion2,trigonal_pyramid_distortion3,trigonal_pyramid_distortion4
 
+x0_v,y0_v,z0_v=np.array([1.,0.,0.]),np.array([0.,1.,0.]),np.array([0.,0.,1.])
+
+#anonymous function f1 calculating transforming matrix with the basis vector expressions,x1y1z1 is the original basis vector
+#x2y2z2 are basis of new coor defined in the original frame,new=T.orig
+f1=lambda x1,y1,z1,x2,y2,z2:np.array([[np.dot(x2,x1),np.dot(x2,y1),np.dot(x2,z1)],\
+                                      [np.dot(y2,x1),np.dot(y2,y1),np.dot(y2,z1)],\
+                                      [np.dot(z2,x1),np.dot(z2,y1),np.dot(z2,z1)]])
+
+#f2 calculate the distance b/ p1 and p2
+f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
+
+#anonymous function f3 is to calculate the coordinates of basis with magnitude of 1.,p1 and p2 are coordinates for two known points, the 
+#direction of the basis is pointing from p1 to p2
+f3=lambda p1,p2:(1./f2(p1,p2))*(p2-p1)+p1
+
+#extract xyz for atom with id in domain
+def extract_coor(domain,id):
+    index=np.where(domain.id==id)[0][0]
+    x=domain.x[index]+domain.dx1[index]+domain.dx2[index]+domain.dx3[index]
+    y=domain.y[index]+domain.dy1[index]+domain.dy2[index]+domain.dy3[index]
+    z=domain.z[index]+domain.dz1[index]+domain.dz2[index]+domain.dz3[index]
+    return np.array([x,y,z])
+
+#set coor to atom with id in domain
+def set_coor(domain,id,coor):
+    index=np.where(domain.id==id)[0][0]
+    domain.x[index]=coor[0]
+    domain.y[index]=coor[1]
+    domain.z[index]=coor[2]
+
+    
 class domain_creator():
     def __init__(self,ref_domain,id_list,terminated_layer=0,domain_N=1,new_var_module=None,z_shift=0.):
         #id_list is a list of id in the order of ref_domain,terminated_layer is the index number of layer to be considered
@@ -2004,3 +2035,45 @@ class domain_creator():
 
         return bond_valence_container
                 
+    #set reference coordinate system defined by atoms with ids in domain, create the coordinate transformation matrix between the old and the new ones
+    #T is 3by4 matrix with the last column defining the origin of the new coordinate system
+    def create_coor_transformation(self,domain,ids):
+        origin,p1,p2=extract_coor(domain,ids[0]),extract_coor(domain,ids[1]),extract_coor(domain,ids[2])
+        x_v=(p1-origin)/f2(p1,origin)
+        p2_o=p2-origin
+        z_v=np.cross(x_v,p2_o)
+        z_v=z_v/f2(np.array([0.,0.,0.]),z_v)
+        y_v=np.cross(z_v,x_v)
+        T=f1(x0_v,y0_v,z0_v,x_v,y_v,z_v)
+        T=np.append(T,origin[:,np.newaxis],axis=1)
+        return T
+                
+    #extract the r theta and phi for atom with id in the reference coordinate system
+    def extract_spherical_pars(self,domain,ref_ids,id):
+        T=self.create_coor_transformation(domain,ref_ids)
+        coors_old=extract_coor(domain,id)-T[:,-1]
+        coors_new=np.dot(T[:,0:-1],coors_old)
+        x,y,z=coors_new[0],coors_new[1],coors_new[2]
+        r=f2(np.array([0.,0.,0.]),coors_new)
+        theta=np.arccos(z/r)
+        phi=0
+        if (x>0 & y>0):
+            phi=np.arctan(y/x)
+        elif (x>0 & y<0):
+            phi=2*np.pi+np.arctan(y/x)
+        elif (x<0 & y>0)|(x<0 & y<0):
+            phi=np.pi+np.arctan(y/x)
+        return r,theta,phi       
+                            
+    #calculate xyz in old coordinate system from spherical system and set it to atom with id    
+    def set_sorbate_xyz(self,domain,ref_ids,r_theta_phi,id):
+        T=self.create_coor_transformation(domain,ref_ids)
+        r,theta,phi=r_theta_phi[0],r_theta_phi[1],r_theta_phi[2]
+        x=r*np.sin(theta)*np.cos(phi)
+        y=r*np.sin(theta)*np.sin(phi)
+        z=r*np.cos(theta)
+        coors_new=np.array([x,y,z])
+        coors_old=np.dot(inv(T[:,0:-1]),coors_new)+T[:,-1]
+        set_coor(domain,id,coors_old)
+        
+        
