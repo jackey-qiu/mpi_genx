@@ -876,7 +876,7 @@ class Slab:
 
 class AtomGroup:
     par_names = ['dx', 'dy', 'dz', 'u', 'oc']
-    def __init__(self, slab = None, id = None,id_in_sym_file=None,use_sym=False,filename=None,set_par={'use_wt':False,'scale':1.0,'z_low':0.0,'z_high':1.0}):
+    def __init__(self, slab = None, id = None,id_in_sym_file=None,use_sym=False,filename=None):
         
         self.ids = []
         self.slabs = []
@@ -885,25 +885,17 @@ class AtomGroup:
         self.oc = 1.0
         self.id_order_in_sym_file=id_in_sym_file
         self.filename=filename
-        self.set_par=set_par
         self.use_sym=use_sym
         if use_sym==True:
             self.sym_file=np.loadtxt(filename,delimiter=',')
-        if use_sym==False:
+        elif use_sym==False:
         #it will set one shift amount for x1,y2 and z3 
             self.sym_file=np.array([[1.,0.,0.,0.,1.,0.,0.,0.,1.]])
-            #we set the number of rows to the maximum possible number
-            #for i in range(len(slab.dx1)):
-                #self.sym_file=np.append(self.sym_file,[[1.,0.,0.,0.,1.,0.,0.,0.,1.]],axis=0)
         if slab != None and  id != None:
             self.add_atom(slab, id)
         
     def _set_func(self, par):
         '''create a function that sets all atom paramater par'''
-        use_wt=self.set_par['use_wt']
-        scale=self.set_par['scale']
-        z_low=self.set_par['z_low']
-        z_high=self.set_par['z_high']
         id_=list(np.copy(self.ids))
         id_.sort()
         #print id_
@@ -933,34 +925,27 @@ class AtomGroup:
         def set_pars(val):
             #print self.sym_file.shape
             for i in funcs.keys():
-                sym_row=0
-                wt=1.
                 if self.use_sym==True:
                     sym_row=np.where(self.id_order_in_sym_file==i)
-                    
                     #print i,sym_row
                     sym_row=sym_row[0][0]
-                #set weight for the shift amount at different layers if necessary
-                if (self.filename!=None)&(use_wt==True):
-                    wt=(slab_.z[atom_index_in_slab]-z_low)*scale/(z_high-z_low)
-                else: wt=1.
                 #the corresponding infomation stored in sym_row, id_order_in_sym_file is the ids of atoms with its order 
                 #appearing the same as that in sym files, say, if I have a id1 at the first place, then the order is defined as 0
                 #which is order of id1's symmetry operations in sym file, thus the first row is the associated sym opts.
                 if par=='dx':
-                    funcs[i][0](val*self.sym_file[sym_row][0]*wt)
-                    funcs[i][1](val*self.sym_file[sym_row][1]*wt)
-                    funcs[i][2](val*self.sym_file[sym_row][2]*wt)
+                    funcs[i][0](val*self.sym_file[sym_row][0])
+                    funcs[i][1](val*self.sym_file[sym_row][1])
+                    funcs[i][2](val*self.sym_file[sym_row][2])
                     #print i,'dx',val
                 elif par=='dy':
-                    funcs[i][0](val*self.sym_file[sym_row][3]*wt)
-                    funcs[i][1](val*self.sym_file[sym_row][4]*wt)
-                    funcs[i][2](val*self.sym_file[sym_row][5]*wt)
+                    funcs[i][0](val*self.sym_file[sym_row][3])
+                    funcs[i][1](val*self.sym_file[sym_row][4])
+                    funcs[i][2](val*self.sym_file[sym_row][5])
                     #i,'dy',val
                 elif par=='dz':
-                    funcs[i][0](val*self.sym_file[sym_row][6]*wt)
-                    funcs[i][1](val*self.sym_file[sym_row][7]*wt)
-                    funcs[i][2](val*self.sym_file[sym_row][8]*wt)
+                    funcs[i][0](val*self.sym_file[sym_row][6])
+                    funcs[i][1](val*self.sym_file[sym_row][7])
+                    funcs[i][2](val*self.sym_file[sym_row][8])
                     #i,'dz',val
                 else: funcs[i](val)
         return set_pars
@@ -972,7 +957,6 @@ class AtomGroup:
         for id, slab in zip(self.ids, self.slabs):
             if self.use_sym==True:
                 sym_row.append(np.where(self.id_order_in_sym_file==id)[0][0])
-
             if par=='dx':
                 funcs.append(getattr(slab, 'get' + id + 'dx1'))
             elif par=='dy':

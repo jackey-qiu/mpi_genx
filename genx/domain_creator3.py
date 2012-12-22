@@ -40,19 +40,17 @@ def set_coor(domain,id,coor):
 
     
 class domain_creator():
-    def __init__(self,ref_domain,id_list,terminated_layer=0,domain_N=1,new_var_module=None,z_shift=0.):
+    def __init__(self,ref_domain,id_list,terminated_layer=0,new_var_module=None):
         #id_list is a list of id in the order of ref_domain,terminated_layer is the index number of layer to be considered
         #for termination,domain_N is a index number for this specific domain, new_var_module is a UserVars module to be used in
         #function of set_new_vars
         self.ref_domain=ref_domain
         self.id_list=id_list
         self.terminated_layer=terminated_layer
-        self.domain_N=domain_N
         self.share_face,self.share_edge,self.share_corner=(False,False,False)
         #self.anchor_list=[]
         self.polyhedra_list=[]
         self.new_var_module=new_var_module
-        self.z_shift=z_shift
         self.domain_A,self.domain_B=self.create_equivalent_domains()
     
     def build_super_cell(self,ref_domain,rem_atom_ids=None):
