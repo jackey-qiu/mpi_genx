@@ -42,24 +42,32 @@ def add_atom_in_slab(slab,filename):
     for line in lines:
         items=line.strip().rsplit('\t')
         slab.add_atom(items[0],items[1],float(items[2]),float(items[3]),float(items[4]),float(items[5]),float(items[6]),float(items[7]))
-        
-unitcell = model.UnitCell(5.038, 5.434, 7.3707, 90, 90, 90)
-inst = model.Instrument(wavel = .833, alpha = 2.0)
-bulk = model.Slab(T_factor='B')
-domain0 =  model.Slab(c = 1.0,T_factor='B')
-domain0_1 =  model.Slab(c = 1.0,T_factor='B')
-rgh=UserVars()
-rgh.new_var('beta', 0.0)
 
-#add atoms for bulk and two ref domains (domain0<half layer> and domain0_1<full layer>)
-#In those two reference domains, the atoms are ordered according to first hight (z values), then y values
-#it is a super surface structure by stacking the surface slab on bulk slab, the repeat vector was counted 
-add_atom_in_slab(bulk,'atom files in bulk.txt')
-add_atom_in_slab(domain0,'atom files in domain0.txt')
-add_atom_in_slab(domain0_1,'atom files in domain0_1.txt')
-
-###########this part should be pretty much the same except for batch path head###########
-#id list according to the order in the reference domain
+def create_match_lib(domain,pb_list,HO_list,atm_list):
+    match_order=pb_list+HO_list+atm_list
+    match_lib={}
+    for i in atm_list:
+        atms,offset=domain.find_neighbors(i)
+        match_lib[i]=create_list(ids=atms+pb_list,off_set_begin=offset,start_N=len(offset))
+    for i in pb_list:
+        match_lib[i]=create_list(ids=atm_list,off_set_begin=[],start_N=0)
+    for i in HO_list:
+        match_lib[i]=[pb_list,[None]*len(pb_list)]
+    return match_lib
+###############################################global vars##################################################
+sorbate_ids_domain1=['Pb1','HO_1']
+sorbate_els_domain1=['Pb','O']
+pb_list=['Pb1']
+HO_list=['HO_1']
+#atom ids for grouping(containerB must be the associated chemically equivalent atoms)
+ids_domain1A=["O1_1_0","O1_2_0","Fe1_2_0","Fe1_3_0","O1_3_0","O1_4_0","Fe1_4_0","Fe1_6_0","O1_5_0","O1_6_0"]
+ids_domain1B=["O1_8_0","O1_7_0","Fe1_9_0","Fe1_8_0","O1_10_0","O1_9_0","Fe1_12_0","Fe1_10_0","O1_12_0","O1_11_0"]
+#group name container
+discrete_gp_names=['gp_O1O8','gp_O2O7','gp_Fe2Fe9','gp_Fe3Fe8','gp_O3O10','gp_O4O9','gp_Fe4Fe12','gp_Fe6Fe10','gp_O5O12','gp_O6O11']
+#atom ids being considered for bond valence check
+atm_list_1A=['O1_1_0','O1_2_0','O1_3_0','O1_4_0','O1_5_0','O1_6_0','Fe1_4_0','Fe1_6_0']
+atm_list_1B=['O1_7_0','O1_8_0','O1_9_0','O1_10_0','O1_11_0','O1_12_0','Fe1_10_0','Fe1_12_0']
+#id list according to the order in the reference domain   
 ref_id_list=["O1_1_0","O1_2_0","Fe1_2_0","Fe1_3_0","O1_3_0","O1_4_0","Fe1_4_0","Fe1_6_0","O1_5_0","O1_6_0","O1_7_0","O1_8_0","Fe1_8_0","Fe1_9_0","O1_9_0","O1_10_0","Fe1_10_0","Fe1_12_0","O1_11_0","O1_12_0",\
 "O_1_0","O_2_0","Fe_2_0","Fe_3_0","O_3_0","O_4_0","Fe_4_0","Fe_6_0","O_5_0","O_6_0","O_7_0","O_8_0","Fe_8_0","Fe_9_0","O_9_0","O_10_0","Fe_10_0","Fe_12_0","O_11_0","O_12_0"]
 #the matching row Id information in the symfile
@@ -67,10 +75,27 @@ sym_file_Fe=np.array(['Fe1_0','Fe2_0','Fe3_0','Fe4_0','Fe5_0','Fe6_0','Fe7_0','F
     'Fe1_1_0','Fe1_2_0','Fe1_3_0','Fe1_4_0','Fe1_5_0','Fe1_6_0','Fe1_7_0','Fe1_8_0','Fe1_9_0','Fe1_10_0','Fe1_11_0','Fe1_12_0'])
 sym_file_O=np.array(['O1_0','O2_0','O3_0','O4_0','O5_0','O6_0','O7_0','O8_0','O9_0','O10_0','O11_0','O12_0',\
     'O1_1_0','O1_2_0','O1_3_0','O1_4_0','O1_5_0','O1_6_0','O1_7_0','O1_8_0','O1_9_0','O1_10_0','O1_11_0','O1_12_0'])
-batch_list=['/home/jackey/apps/batchfile/','/home/jackey/model2/batchfile/','/center/w/cqiu/batchfile/','/archive/u1/uaf/cqiu/batchfile/']
-batch_path_head=batch_list[1]
+#file paths
+batch_path_head='/center/w/cqiu/batchfile/'
+discrete_vars_file_domain1='new_varial_file_standard_A.txt'
+sim_batch_file_domain1='sim_batch_file_standard_A.txt'
+scale_operation_file_domain1='scale_operation_file_standard_A.txt'
 sym_file_head='/home/jackey/genx_data/'
-       
+###############################################setting slabs##################################################################    
+unitcell = model.UnitCell(5.038, 5.434, 7.3707, 90, 90, 90)
+inst = model.Instrument(wavel = .833, alpha = 2.0)
+bulk = model.Slab(T_factor='B')
+domain0 =  model.Slab(c = 1.0,T_factor='B')
+domain0_1 =  model.Slab(c = 1.0,T_factor='B')
+rgh=UserVars()
+rgh.new_var('beta', 0.0)
+################################################build up ref domains############################################
+#add atoms for bulk and two ref domains (domain0<half layer> and domain0_1<full layer>)
+#In those two reference domains, the atoms are ordered according to first hight (z values), then y values
+#it is a super surface structure by stacking the surface slab on bulk slab, the repeat vector was counted 
+add_atom_in_slab(bulk,batch_path_head+'atom files in bulk.txt')
+add_atom_in_slab(domain0,batch_path_head+'atom files in domain0.txt')
+add_atom_in_slab(domain0_1,batch_path_head+'atom files in domain0_1.txt')
 ###################create domain classes and initiate the chemical equivalent domains####################
 #when change or create a new domain, make sure the terminated_layer (start from 0)set right
 ######################################setup domain1############################################
@@ -80,94 +105,45 @@ domain1A=domain_class_1.domain_A
 domain1B=domain_class_1.domain_B
 domain_class_1.domain1A=domain1A
 domain_class_1.domain1B=domain1B
-
-#Adding sorbates to domain1A
-add_atom(domain=domain1A,ids=['Pb1','HO_1'],els=['Pb','O'],height=2.)
+#Adding sorbates to domain1A and domain1B
+add_atom(domain=domain1A,ids=sorbate_ids_domain1,els=sorbate_els_domain1,height=2.)
+add_atom(domain=domain1B,ids=sorbate_ids_domain1,els=sorbate_els_domain1,height=2.)
 #set variables
 domain_class_1.set_new_vars(head_list=['u_o_n','u_Fe_n','oc_n'],N_list=[4,3,7])
-domain_class_1.set_discrete_new_vars_batch(batch_path_head+'new_varial_file_standard_A.txt')
+domain_class_1.set_discrete_new_vars_batch(batch_path_head+discrete_vars_file_domain1)
+######################################do grouping###############################################
 #note the grouping here is on a layer basis, ie atoms of same layer are groupped together
 #you may group in symmetry, then atoms of same layer are not independent.
 atm_gp_list_domain1=domain_class_1.grouping_sequence_layer(domain=[domain1A,domain1B], first_atom_id=['O1_1_0','O1_7_0'],\
     sym_file=None,id_match_in_sym={'Fe':sym_file_Fe,'O':sym_file_O},layers_N=7,use_sym=False)
 domain_class_1.atm_gp_list_domain1=atm_gp_list_domain1
-
 #you may also only want to group each chemically equivalent atom from two domains
 atm_gp_discrete_list_domain1=[]
-ids_domain1A=["O1_1_0","O1_2_0","Fe1_2_0","Fe1_3_0","O1_3_0","O1_4_0","Fe1_4_0","Fe1_6_0","O1_5_0","O1_6_0"]
-#double check the order here
-ids_domain1B=["O1_8_0","O1_7_0","Fe1_9_0","Fe1_8_0","O1_10_0","O1_9_0","Fe1_12_0","Fe1_10_0","O1_12_0","O1_11_0"]
 for i in range(len(ids_domain1A)):
-    atm_gp_discrete_list_domain1.append(domain_class_1.grouping_discrete_layer(domain=[domain1A,domain1B],\
-domain_class_1.atm_gp_discrete_list_domain1=atm_gp_discrete_list_domain1                                                                        atom_ids=[ids_domain1A[i],ids_domain1B[i]]))
-
+    atm_gp_discrete_list_domain1.append(domain_class_1.grouping_discrete_layer(domain=[domain1A,domain1B],atom_ids=[ids_domain1A[i],ids_domain1B[i]]))
+domain_class_1.atm_gp_discrete_list_domain1=atm_gp_discrete_list_domain1    
+for i in range(len(discrete_gp_names)):vars()[discrete_gp_names[i]]=atm_gp_discrete_list_domain1[i] 
+#####################################do bond valence matching###################################
+match_lib_1A=create_match_lib(domain=domain_class_1.build_super_cell(domain0),pb_list=['Pb1'],HO_list=['HO_1'],atm_list=atm_list_1A)
+match_lib_1B=create_match_lib(domain=domain_class_1.build_super_cell(ref_domain=domain0,rem_atom_ids=["O1_1_0","O1_2_0","Fe1_2_0","Fe1_3_0","O1_3_0","O1_4_0","Fe1_4_0","Fe1_6_0","O1_5_0","O1_6_0"]),\
+                                                            pb_list=['Pb1'],HO_list=['HO_1'],atm_list=atm_list_1B)
 ###########################setup domain2################################
 #same reference domain,but set the occupancy of second iron layer to 0
-rgh_domain2=UserVars()
-domain_class_2=domain_creator3.domain_creator(ref_domain=domain0,id_list=ref_id_list,terminated_layer=0,new_var_module=rgh_domain2)
-domain2A=domain_class_2.domain_A
-domain2B=domain_class_2.domain_B
-domain_class_2.domain2A=domain2A
-domain_class_2.domain2B=domain2B
-#set variables
-domain_class_2.set_new_vars(head_list=['u_o_n','u_Fe_n','oc_n'],N_list=[4,3,7])
-domain_class_2.set_discrete_new_vars_batch(batch_path_head+'new_varial_file_standard_B.txt')
+#edit and uncomment following segment if you want to consider full layer case
 
-atm_gp_list_domain2=domain_class_2.grouping_sequence_layer(domain=[domain2A,domain2B], first_atom_id=['O1_1_0','O1_7_0'],\
-    sym_file=None,id_match_in_sym={'Fe':sym_file_Fe,'O':sym_file_O},layers_N=7,use_sym=False)
-domain_class_2.atm_gp_list_domain2=atm_gp_list_domain2
-
-#you may also only want to group each chemically equivalent atom from two domains
-atm_gp_discrete_list_domain2=[]
-ids_domain2A=["O1_1_0","O1_2_0","Fe1_2_0","Fe1_3_0","O1_3_0","O1_4_0","Fe1_4_0","Fe1_6_0","O1_5_0","O1_6_0"]
-#double check the order here
-ids_domain2B=["O1_8_0","O1_7_0","Fe1_9_0","Fe1_8_0","O1_10_0","O1_9_0","Fe1_12_0","Fe1_10_0","O1_12_0","O1_11_0"]
-for i in range(len(ids_domain2A)):
-    atm_gp_discrete_list_domain2.append(domain_class_2.grouping_discrete_layer(domain=[domain2A,domain2B],\
-domain_class_2.atm_gp_discrete_list_domain2=atm_gp_discrete_list_domain2
 
 def Sim(data):
     #extract the fitting par values in the associated attribute and then do the scaling(initiation+processing, actually update the fitting parameter values)
-    domain_class_1.init_sim_batch2(batch_path_head+'sim_batch_file_standard_A.txt')
-    domain_class_1.scale_opt_batch2b(batch_path_head+'scale_operation_file_standard_A.txt')
-    #edit sim and scale file carefully for domain_class2
-    domain_class_2.init_sim_batch2(batch_path_head+'sim_batch_file_standard_B.txt')
-    domain_class_2.scale_opt_batch2b(batch_path_head+'scale_operation_file_standard_B.txt')
-    #print refined data of atom positions
-    print_data(yes=bool(0),N_sorbate=4,id='0003')
-    
-    #match_order to define the atoms to be considered for bond valence check
-    #match_lib to define the way to calculate the bond valence
-    ##############doing matching for domain1A####################
-    match_order_1A=['Pb1','HO_1','O1_1_0','O1_2_0','O1_3_0','O1_4_0','O1_5_0','O1_6_0','Fe1_4_0','Fe1_6_0']
-    #means consider dist btw O1_1_0 and Fe1_4_0 with no offset and dist btw 01_1_0 and Pb1 with full offset(+x,-x,...and sucha)
-    match_lib_1A={'O1_1_0':create_list(ids=['Fe1_4_0','Pb1'],off_set_begin=[None],start_N=1)}
-    match_lib_1A['O1_2_0']=create_list(ids=['Fe1_6_0','Pb1'],off_set_begin=['+x'],start_N=1)
-    match_lib_1A['O1_3_0']=create_list(ids=['Fe1_4_0','Fe1_6_0','Pb1'],off_set_begin=[None,None],start_N=2)
-    match_lib_1A['O1_4_0']=create_list(ids=['Fe1_4_0','Fe1_6_0','Pb1'],off_set_begin=['-y',None],start_N=2)
-    match_lib_1A['O1_5_0']=create_list(ids=['Fe1_4_0','Fe1_6_0','Fe1_8_0','Pb1'],off_set_begin=[None,'+x','+x'],start_N=3)
-    match_lib_1A['O1_6_0']=create_list(ids=['Fe1_4_0','Fe1_6_0','Fe1_9_0','Pb1'],off_set_begin=['-y',None,None],start_N=3)
-    match_lib_1A['Fe1_4_0']=[['O1_1_0', 'O1_3_0','O1_5_0', 'O1_7_0', 'O1_4_0', 'O1_6_0'],[None,None,None,None,'+y','+y']]
-    match_lib_1A['Fe1_6_0']=[['O1_3_0', 'O1_4_0', 'O1_8_0', 'O1_2_0', 'O1_5_0', 'O1_6_0'],[None,None,None,'-x','-x','-x']]
-    match_lib_1A['Pb1']=create_list(ids=['O1_1_0','O1_2_0','O1_3_0','O1_4_0','O1_5_0','O1_6_0'],off_set_begin=[],start_N=0)
-    match_lib_1A['HO_1']=[['Pb1'],[None]]
-    ##############doing matching for domain2A####################
-    match_order_2A=['O1_1_0','O1_2_0','O1_3_0','O1_4_0','O1_5_0','O1_6_0','Fe1_4_0','Fe1_6_0']
-    #means consider dist btw O1_1_0 and Fe1_4_0 with no offset and dist btw 01_1_0 and Pb1 with full offset(+x,-x,...and sucha)
-    match_lib_2A={'O1_1_0':[['Fe1_4_0'],[None]]}
-    match_lib_2A['O1_2_0']=[['Fe1_6_0'],['+x']]
-    match_lib_2A['O1_3_0']=[['Fe1_4_0','Fe1_6_0'],[None,None]]
-    match_lib_2A['O1_4_0']=[['Fe1_4_0','Fe1_6_0'],['-y',None]]
-    match_lib_2A['O1_5_0']=[['Fe1_4_0','Fe1_6_0','Fe1_8_0'],[None,'+x','+x']]
-    match_lib_2A['O1_6_0']=[['Fe1_4_0','Fe1_6_0','Fe1_9_0'],['-y',None,None]]
-    match_lib_2A['Fe1_4_0']=[['O1_1_0', 'O1_3_0','O1_5_0', 'O1_7_0', 'O1_4_0', 'O1_6_0'],[None,None,None,None,'+y','+y']]
-    match_lib_2A['Fe1_6_0']=[['O1_3_0', 'O1_4_0', 'O1_8_0', 'O1_2_0', 'O1_5_0', 'O1_6_0'],[None,None,None,'-x','-x','-x']]
-
+    domain_class_1.init_sim_batch2(batch_path_head+sim_batch_file_domain1)
+    domain_class_1.scale_opt_batch2b(batch_path_head+scale_operation_file_domain1)
+    #update sorbates in domain1B
+    for sorbate in sorbate_list:
+        r_theta_phi=domain_class_1.extract_spherical_pars(domain=domain1A,ref_ids=["O1_1_0","O1_2_0","Fe1_2_0"],id=sorbate)
+        domain_class_1.set_sorbate_xyz(domain=domain1B,ref_ids=["O1_8_0","O1_7_0","Fe1_9_0"],r_theta_phi=r_theta_phi,id=sorbate)
+    #print_data(yes=bool(0),N_sorbate=4,id='0003')
     F =[]
     beta=rgh.beta
-    wt1=rgh_domain1.wt/(rgh_domain1.wt+rgh_domain2.wt)
-    wt2=rgh_domain2.wt/(rgh_domain1.wt+rgh_domain2.wt)
-    domain={'domain1A':{'slab':domain1A,'wt':1.}}
+    domain={'domain1A':{'slab':domain1A,'wt':0.5},'domain1B':{'slab':domain1B,'wt':0.5}}
     sample = model.Sample(inst, bulk, domain, unitcell,coherence=False,surface_parms={'delta1':0.,'delta2':0.1391})
     for data_set in data:
         f=np.array([])
@@ -179,9 +155,9 @@ def Sim(data):
                 t.append(bond_valence[i])
             f=np.array(t)
         elif (data_set.extra_data['h'][0]==11):
-            bond_valence=domain_class_2.cal_bond_valence3(domain=domain2A,match_lib=match_lib_2A)
+            bond_valence=domain_class_2.cal_bond_valence3(domain=domain1B,match_lib=match_lib_1B)
             t=[]
-            for i in match_order_2A:
+            for i in match_order_1B:
                 t.append(bond_valence[i])
             f=np.array(t)
         else:

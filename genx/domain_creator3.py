@@ -1641,6 +1641,26 @@ class domain_creator():
             f.close()
         return bond_valence_container
         
+    def find_neighbors(self,domain,id,searching_range=3):
+        neighbor_container=[]
+        atm_ids=[]
+        offset=[]
+        full_offset=['+x','-x','+y','-y','+x-y','+x+y','-x+y','-x-y']
+        basis=np.array([5.038,5.434,7.3707])
+        f1=lambda domain,index:np.array([domain.x[index]+domain.dx1[index],domain.y[index]+domain.dy1[index],domain.z[index]+domain.dz1[index]])*basis
+        f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
+        index=np.where(domain.id==id)[0][0]
+        check=(f2(f1(domain,index),f1(domain,i))<=searching_range)&(f2(f1(domain,index),f1(domain,i))!=0.)
+        [neighbor_container.append(domain.id[i]) for i in range(len(domain.id)) if check]
+        for i in neighbor_container:
+            if i.rsplit('_')[-1] in full_offset:
+                atm_ids.append('_'.join(i.rsplit('_')[:-1]))
+                offset.append(i.rsplit('_')[-1])
+            else:
+                atm_ids.append(i)
+                offset.append(None)
+        return atm_ids,offset
+        
     def cal_top_oxygen(self,domain,Fe_id,O_id_z,O_id_xy,r,theta,phi,offset=[None,None,None,None]):
     #to calculate the top oxygen position in fragtion,the Fe_id specified Fe atom will be set as the origin of the spherical coordinate system
     #O_z-Fe is the vector of z direction, while this vector and the Fe-O_xy[0],Fe-O_xy[1] form a base set, the normalized orthogonal base set will be
