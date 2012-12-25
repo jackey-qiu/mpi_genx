@@ -59,6 +59,7 @@ sorbate_ids_domain1=['Pb1','HO_1']
 sorbate_els_domain1=['Pb','O']
 pb_list=['Pb1']
 HO_list=['HO_1']
+rgh_domain1=UserVars()
 #atom ids for grouping(containerB must be the associated chemically equivalent atoms)
 ids_domain1A=["O1_1_0","O1_2_0","Fe1_2_0","Fe1_3_0","O1_3_0","O1_4_0","Fe1_4_0","Fe1_6_0","O1_5_0","O1_6_0"]
 ids_domain1B=["O1_8_0","O1_7_0","Fe1_9_0","Fe1_8_0","O1_10_0","O1_9_0","Fe1_12_0","Fe1_10_0","O1_12_0","O1_11_0"]
@@ -99,7 +100,6 @@ add_atom_in_slab(domain0_1,batch_path_head+'atom files in domain0_1.txt')
 ###################create domain classes and initiate the chemical equivalent domains####################
 #when change or create a new domain, make sure the terminated_layer (start from 0)set right
 ######################################setup domain1############################################
-rgh_domain1=UserVars()
 domain_class_1=domain_creator3.domain_creator(ref_domain=domain0,id_list=ref_id_list,terminated_layer=0,new_var_module=rgh_domain1)
 domain1A=domain_class_1.domain_A
 domain1B=domain_class_1.domain_B
@@ -107,7 +107,7 @@ domain_class_1.domain1A=domain1A
 domain_class_1.domain1B=domain1B
 #Adding sorbates to domain1A and domain1B
 add_atom(domain=domain1A,ids=sorbate_ids_domain1,els=sorbate_els_domain1,height=2.)
-add_atom(domain=domain1B,ids=sorbate_ids_domain1,els=sorbate_els_domain1,height=2.)
+add_atom(domain=domain1B,ids=sorbate_ids_domain1,els=sorbate_els_domain1,height=1.6)
 #set variables
 domain_class_1.set_new_vars(head_list=['u_o_n','u_Fe_n','oc_n'],N_list=[4,3,7])
 domain_class_1.set_discrete_new_vars_batch(batch_path_head+discrete_vars_file_domain1)
