@@ -75,7 +75,7 @@ class DataSet:
             #Should the error be used
             self.use_error = False
             #The columns to load
-            self.cols = (0,1,1) # Columns to load (xcol,ycol)
+            self.cols = [0,1,1] # Columns to load (xcol,ycol)
             #The different colors for the data and simulation
             self.data_color = (0.0, 0.0, 1.0)
             self.sim_color = (1.0, 0.0, 0.0)
@@ -228,7 +228,52 @@ class DataSet:
                     print "There are not enough columns in your data\n\
                      As I see it there are %i columns"%A.shape[1]
             return False
-        
+
+    def loadfile_new(self,filename, xye_col=[2,3,4],extra_col={'h':0,'k':1,'LB':5,'dL':6}):
+        '''
+        compared to the original loadfile, here we also load extra columns
+        xye_col=[2,3,4]:x on second column, y on third and so so
+        extra_col={'h':0,'k':1,'LB':5,'dL':6}: h on 0th column, k on first column and so on
+        name for the dataset is simply (h,k) (eg (1,0),(0,0))
+        '''
+        try:
+            f=open(filename)
+            #f.close()
+        except:
+            print "Can't open file: %s"%filename
+        else:
+            try:
+                A = loadtxt(f)
+                #, comments = '#', delimeter = None, skiprows = 0
+            except:
+                print "Can't read the file %s, check the format"%filename
+            else:
+                #print A
+                self.cols[0],xcol=xye_col[0],xye_col[0]
+                self.cols[1],ycol=xye_col[1],xye_col[1]
+                self.cols[2],ecol=xye_col[2],xye_col[2]
+                #print xcol,ycol
+                if xcol<A.shape[1] and ycol<A.shape[1] and ecol<A.shape[1]:
+                    
+
+                    self.name="(%i,%i)"%(A[0,0],A[0,1])
+                    self.x_raw=A[:,xcol].copy()
+                    self.y_raw=A[:,ycol].copy()
+                    self.error_raw=A[:,ecol].copy()
+                    self.x=A[:,xcol]
+                    self.y=A[:,ycol]
+                    self.error=A[:,ecol]
+                    self.y_sim = array([])
+                    for key in extra_col.keys():
+                        self.extra_data[key]=A[:,extra_col[key]].copy()
+                        self.extra_data_raw[key]=A[:,extra_col[key]].copy()
+                    print "Sucessfully loaded %i datapoints"%(A.shape[0])
+                    return True
+                else:
+                    print "There are not enough columns in your data\n\
+                     As I see it there are %i columns"%A.shape[1]
+            return False
+            
     def save_file(self, filename):
         '''save_file(self, filename) --> None
         
@@ -538,7 +583,18 @@ class DataList:
         else:
             self.items.append(DataSet(name,copy_from=self.items[-1]))
         #print "An empty dataset is appended at postition %i."%(len(self.items)-1)
-
+    
+    def add_new_list(self,name_list=['']):
+        ''' 
+        Adds a list of DataSet, name_list is a list of dataset, each item is the absolute path to one dataset
+        '''
+        for name in name_list:
+            self.add_new('')
+            self.items[-1].loadfile_new(name)
+        self.items=self.items[1:]
+        self._counter=self._counter-1
+        #print "An empty dataset is appended at postition %i."%(len(self.items)-1)
+        
     def delete_item(self,pos):
         '''delete_item(self,pos) --> None        
         

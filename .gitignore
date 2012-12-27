@@ -1,6 +1,5 @@
 tmp*
 *.pyc
-*.gx
 *.py~
 job*
 *.o*

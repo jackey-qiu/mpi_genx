@@ -547,7 +547,7 @@ class UnitCell:
 
 class Slab:
     par_names = ['dx1','dx2','dx3','dx4','dy1','dy2','dy3','dy4','dz1','dz2','dz3','dz4',\
-                          'u', 'du','oc','doc' 'm']
+                          'u', 'du','oc','doc', 'm']
     def __init__(self, name = '', c = 1.0, slab_oc = 1.0, T_factor='u'):
         try:
             self.c = float(c)
@@ -896,37 +896,38 @@ class AtomGroup:
         
     def _set_func(self, par):
         '''create a function that sets all atom paramater par'''
-        id_=list(np.copy(self.ids))
-        id_.sort()
+        #id_=list(np.copy(self.ids))
+        #id_.sort()
         #print id_
-        funcs={}
+        funcs=[]
         #here you must make sure the id is different even for different slab
-        for id in self.ids:
+        for i in range(len(self.ids)):
         #the change of dx,dy or dz will accordingly change dx,dy and dz at the same time
         #to eliminate the overwriting, the changes go to temp dxn,dyn and dzn. At the time of calculating structure factor
         #sum of dxn will be added to x, sum of dyn will be added up to y, and sum of dzn will be added up to z
+            id=self.ids[i]
             if (par=='dx'):
-                funcx=getattr(self.slabs[self.ids.index(id)], 'set'+ id  + 'dx1')
-                funcy=getattr(self.slabs[self.ids.index(id)], 'set'+ id  + 'dy1')
-                funcz=getattr(self.slabs[self.ids.index(id)], 'set'+ id  + 'dz1')
-                funcs[id]=[funcx,funcy,funcz]
+                funcx=getattr(self.slabs[i], 'set'+ id  + 'dx1')
+                funcy=getattr(self.slabs[i], 'set'+ id  + 'dy1')
+                funcz=getattr(self.slabs[i], 'set'+ id  + 'dz1')
+                funcs.append([funcx,funcy,funcz])
             elif (par=='dy'):
-                funcx=getattr(self.slabs[self.ids.index(id)], 'set'+ id  + 'dx2')
-                funcy=getattr(self.slabs[self.ids.index(id)], 'set'+ id  + 'dy2')
-                funcz=getattr(self.slabs[self.ids.index(id)], 'set'+ id  + 'dz2')
-                funcs[id]=[funcx,funcy,funcz]
+                funcx=getattr(self.slabs[i], 'set'+ id  + 'dx2')
+                funcy=getattr(self.slabs[i], 'set'+ id  + 'dy2')
+                funcz=getattr(self.slabs[i], 'set'+ id  + 'dz2')
+                funcs.append([funcx,funcy,funcz])
             elif (par=='dz'):
-                funcx=getattr(self.slabs[self.ids.index(id)], 'set'+ id  + 'dx3')
-                funcy=getattr(self.slabs[self.ids.index(id)], 'set'+ id  + 'dy3')
-                funcz=getattr(self.slabs[self.ids.index(id)], 'set'+ id  + 'dz3')
-                funcs[id]=[funcx,funcy,funcz]
-            else:funcs[id]=getattr(self.slabs[self.ids.index(id)], 'set'+ id  +  par)
-        
+                funcx=getattr(self.slabs[i], 'set'+ id  + 'dx3')
+                funcy=getattr(self.slabs[i], 'set'+ id  + 'dy3')
+                funcz=getattr(self.slabs[i], 'set'+ id  + 'dz3')
+                funcs.append([funcx,funcy,funcz])
+            else:funcs.append(getattr(self.slabs[i], 'set'+ id  +  par))
+
         def set_pars(val):
             #print self.sym_file.shape
-            for i in funcs.keys():
+            for i in range(len(funcs)):
                 if self.use_sym==True:
-                    sym_row=np.where(self.id_order_in_sym_file==i)
+                    sym_row=np.where(self.id_order_in_sym_file==self.ids[i])
                     #print i,sym_row
                     sym_row=sym_row[0][0]
                 #the corresponding infomation stored in sym_row, id_order_in_sym_file is the ids of atoms with its order 

@@ -5,7 +5,7 @@ import numpy as np
 from operator import mul
 from numpy.linalg import inv
 import sys
-sys.path.append('\\home\\tlab\\Desktop\\genx2.0.0\\polyhedra-geometry')
+sys.path.append('D:\\Programming codes\\geometry codes\\polyhedra-geometry')
 import hexahedra,hexahedra_distortion,tetrahedra,octahedra,tetrahedra_edge_distortion,trigonal_pyramid_distortion,trigonal_pyramid_distortion_shareface,trigonal_pyramid_distortion2,trigonal_pyramid_distortion3,trigonal_pyramid_distortion4
 
 x0_v,y0_v,z0_v=np.array([1.,0.,0.]),np.array([0.,1.,0.]),np.array([0.,0.,1.])
@@ -37,8 +37,24 @@ def set_coor(domain,id,coor):
     domain.x[index]=coor[0]
     domain.y[index]=coor[1]
     domain.z[index]=coor[2]
+#grid matching library for considering offset, x y both from -0.3 to 1.2 with each step of 0.5
+#match like 1  2  3
+#           6  5  4
+#           7  8  9
+#the match is based on closest distance
+#if you consider match 3 and 6, then 6 will shift towards right by 1 unit to make it to be adjacent to 3, so in this case offset is "+y"
+#5 is neighbor to all the other tiles so no offsets (depicted as None)
+grid_match_lib={}
+grid_match_lib[1]={2:None,3:'-x',4:'-x',5:None,6:None,7:'+y',8:'+y',9:'-x+y'}
+grid_match_lib[2]={1:None,3:None,4:None,5:None,6:None,7:'+y',8:'+y',9:'+y'}
+grid_match_lib[3]={2:None,1:'+x',4:None,5:None,6:'+x',7:'+x+y',8:'+y',9:'+y'}
+grid_match_lib[4]={2:None,3:None,1:'+x',5:None,6:'+x',7:'+x',8:None,9:None}
+grid_match_lib[5]={2:None,3:None,4:None,1:None,6:None,7:None,8:None,9:None}
+grid_match_lib[6]={2:None,3:'-x',4:'-x',5:None,1:None,7:None,8:None,9:'-x'}
+grid_match_lib[7]={2:'-y',3:'-x-y',4:'-x',5:None,6:None,1:'-y',8:None,9:'-x'}
+grid_match_lib[8]={2:'-y',3:'-y',4:None,5:None,6:None,7:None,1:'-y',9:None}
+grid_match_lib[9]={2:'-y',3:'-y',4:None,5:None,6:'+x',7:'+x',8:None,1:'+x-y'}
 
-    
 class domain_creator():
     def __init__(self,ref_domain,id_list,terminated_layer=0,new_var_module=None):
         #id_list is a list of id in the order of ref_domain,terminated_layer is the index number of layer to be considered
@@ -89,6 +105,7 @@ class domain_creator():
                 new_domain_A.del_atom(id)
         #number 5 here is crystal specific, here is the case for hematite
         for id in self.id_list[:(self.terminated_layer+5)*2]:
+            #print id in new_domain_B.id
             new_domain_B.del_atom(id)
         return new_domain_A,new_domain_B
         
@@ -1215,7 +1232,10 @@ class domain_creator():
         atm_gp_list=[]
         for i in range(layers_N):
             index_1=np.where(domain[0].id==first_atom_id[0])[0][0]+i*2
-            temp_atm_gp=model.AtomGroup(slab=domain[0],id=str(domain[0].id[index_1]),id_in_sym_file=id_match_in_sym[str(domain[0].el[index_1])],use_sym=use_sym,filename=sym_file[str(domain[0].el[index_1])])
+            if sym_file!=None:
+                temp_atm_gp=model.AtomGroup(slab=domain[0],id=str(domain[0].id[index_1]),id_in_sym_file=id_match_in_sym[str(domain[0].el[index_1])],use_sym=use_sym,filename=sym_file[str(domain[0].el[index_1])])
+            else:
+                temp_atm_gp=model.AtomGroup(slab=domain[0],id=str(domain[0].id[index_1]),id_in_sym_file=id_match_in_sym[str(domain[0].el[index_1])],use_sym=use_sym,filename=None)
             temp_atm_gp.add_atom(domain[0],str(domain[0].id[index_1+1]))
             index_2=np.where(domain[1].id==first_atom_id[1])[0][0]+i*2
             temp_atm_gp.add_atom(domain[1],str(domain[1].id[index_2]))
@@ -1641,7 +1661,7 @@ class domain_creator():
             f.close()
         return bond_valence_container
         
-    def find_neighbors(self,domain,id,searching_range=3):
+    def find_neighbors(self,domain,id,searching_range=2.3):
         neighbor_container=[]
         atm_ids=[]
         offset=[]
@@ -1650,8 +1670,7 @@ class domain_creator():
         f1=lambda domain,index:np.array([domain.x[index]+domain.dx1[index],domain.y[index]+domain.dy1[index],domain.z[index]+domain.dz1[index]])*basis
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
         index=np.where(domain.id==id)[0][0]
-        check=(f2(f1(domain,index),f1(domain,i))<=searching_range)&(f2(f1(domain,index),f1(domain,i))!=0.)
-        [neighbor_container.append(domain.id[i]) for i in range(len(domain.id)) if check]
+        [neighbor_container.append(domain.id[i]) for i in range(len(domain.id)) if (f2(f1(domain,index),f1(domain,i))<=searching_range)&(f2(f1(domain,index),f1(domain,i))!=0.)]
         for i in neighbor_container:
             if i.rsplit('_')[-1] in full_offset:
                 atm_ids.append('_'.join(i.rsplit('_')[:-1]))
@@ -1993,7 +2012,7 @@ class domain_creator():
             bond_valence_container[i]=0
             
         basis=np.array([5.038,5.434,7.3707])
-        f1=lambda domain,index:np.array([domain.x[index]+domain.dx1[index],domain.y[index]+domain.dy1[index],domain.z[index]+domain.dz1[index]])*basis
+        f1=lambda domain,index:np.array([domain.x[index]+domain.dx1[index]+domain.dx2[index]+domain.dx3[index],domain.y[index]+domain.dy1[index]+domain.dy2[index]+domain.dy3[index],domain.z[index]+domain.dz1[index]+domain.dz2[index]+domain.dz3[index]])*basis
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
         
         def _offset_translate(flag):
@@ -2023,17 +2042,18 @@ class domain_creator():
                 index2=np.where(domain.id==j)[0][0]
                 dist=f2(f1(domain,index),f1(domain,index2)+_offset_translate(match_lib[i][1][k]))
                 r0=0
-                if (domain.el[index]=='Pb')|(domain.el[index2]=='Pb'):r0=2.112
-                elif (domain.el[index]=='Fe')|(domain.el[index2]=='Fe'):r0=1.759
-                elif (domain.el[index]=='Sb')|(domain.el[index2]=='Sb'):r0=1.973
-                elif (domain.el[index]=='O')&(domain.el[index2]=='O'):#when two Oxygen atoms are too close, the structure explose with high r0, so we are expecting a high bond valence value here.
-                    if dist<2.3:r0=10
+                if ((domain.el[index]=='Pb')&(domain.el[index2]=='O'))|((domain.el[index2]=='Pb')&(domain.el[index]=='O')):r0=2.112
+                elif ((domain.el[index]=='Fe')&(domain.el[index2]=='O'))|((domain.el[index2]=='Fe')&(domain.el[index]=='O')):r0=1.759
+                elif ((domain.el[index]=='Sb')&(domain.el[index2]=='O'))|((domain.el[index2]=='Sb')&(domain.el[index]=='O')):r0=1.973
+                else:#when two atoms are too close, the structure explose with high r0, so we are expecting a high bond valence value here.
+                    if dist<2.:r0=10
                     else:r0=0.
                 #if (i=='pb1'):
                     #print j,str(match_lib[i][1][k]),dist,'pb_coor',f1(domain,index)/basis,'O_coor',(f1(domain,index2)+_offset_translate(match_lib[i][1][k]))/basis,np.exp((r0-dist)/0.37)
                 if dist<3.:#take it counted only when they are not two far away
                     bond_valence_container[i]=bond_valence_container[i]+np.exp((r0-dist)/0.37)
                     match_lib[i][2]=match_lib[i][2]+1
+        """
         for i in bond_valence_container.keys():
             #try to add hydrogen or hydrogen bond to the oxygen with 1.6=2*OH, 1.=OH+H, 0.8=OH and 0.2=H
             index=np.where(domain.id==i)[0][0]
@@ -2050,9 +2070,83 @@ class domain_creator():
                 #bond_valence_corrected_value=[1.6,1.,0.8,0.2,0.]
                 ref=np.sign(bond_valence_container[i]+np.array(bond_valence_corrected_value)-2.)*(bond_valence_container[i]+np.array(bond_valence_corrected_value)-2.)
                 bond_valence_container[i]=bond_valence_container[i]+bond_valence_corrected_value[np.where(ref==np.min(ref))[0][0]]
-
+        """
         return bond_valence_container
+        
+    def cal_bond_valence4(self,domain,center_atm,match_list):
+        #center_atm='O1',match_list=[['Fe1','Fe2'],['-x','+y']]
+        #return a library showing the bond valence contribution to O1
+        #calculate the bond valence of (in this case) O1_Fe1, O1_Fe2, where Fe1 and Fe2 have offset defined by '-x' and '+y' respectively.
+        #return a lib with the same key as match_lib, the value for each key is the bond valence calculated
+        bond_valence_container={}
+        match_list.append(0)
+        for i in match_list[0]:
+            bond_valence_container[i]=0
+        basis=np.array([5.038,5.434,7.3707])
+        f1=lambda domain,index:np.array([domain.x[index]+domain.dx1[index]+domain.dx2[index]+domain.dx3[index],domain.y[index]+domain.dy1[index]+domain.dy2[index]+domain.dy3[index],domain.z[index]+domain.dz1[index]+domain.dz2[index]+domain.dz3[index]])*basis
+        f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
+        
+        def _offset_translate(flag):
+            if flag=='+x':
+                return np.array([1.,0.,0.])*basis
+            elif flag=='-x':
+                return np.array([-1.,0.,0.])*basis
+            elif flag=='+y':
+                return np.array([0.,1.,0.])*basis
+            elif flag=='-y':
+                return np.array([0.,-1.,0.])*basis
+            elif flag=='+x+y':
+                return np.array([1.,1.,0.])*basis
+            elif flag=='+x-y':
+                return np.array([1.,-1.,0.])*basis
+            elif flag=='-x-y':
+                return np.array([-1.,-1.,0.])*basis
+            elif flag=='-x+y':
+                return np.array([-1.,1.,0.])*basis
+            elif flag==None:
+                return np.array([0.,0.,0.])*basis
+    
+        index=np.where(domain.id==center_atm)[0][0]
+        for k in range(len(match_list[0])):
+            j=match_list[0][k]
+            index2=np.where(domain.id==j)[0][0]
+            dist=f2(f1(domain,index),f1(domain,index2)+_offset_translate(match_list[1][k]))
+            r0=0
+            if ((domain.el[index]=='Pb')&(domain.el[index2]=='O'))|((domain.el[index2]=='Pb')&(domain.el[index]=='O')):r0=2.112
+            elif ((domain.el[index]=='Fe')&(domain.el[index2]=='O'))|((domain.el[index2]=='Fe')&(domain.el[index]=='O')):r0=1.759
+            elif ((domain.el[index]=='Sb')&(domain.el[index2]=='O'))|((domain.el[index2]=='Sb')&(domain.el[index]=='O')):r0=1.973
+            else:#when two atoms are too close, the structure explose with high r0, so we are expecting a high bond valence value here.
+                if dist<2.:r0=10
+                else:r0=0.
+                #if (i=='pb1'):
+                #print j,str(match_lib[i][1][k]),dist,'pb_coor',f1(domain,index)/basis,'O_coor',(f1(domain,index2)+_offset_translate(match_lib[i][1][k]))/basis,np.exp((r0-dist)/0.37)
+            if dist<3.:#take it counted only when they are not two far away
                 
+                bond_valence_container[j]=np.exp((r0-dist)/0.37)
+                #print j,extract_coor(domain,j),dist,bond_valence_container[j]
+                match_list[2]=match_list[2]+1
+        """
+        for i in bond_valence_container.keys():
+            #try to add hydrogen or hydrogen bond to the oxygen with 1.6=2*OH, 1.=OH+H, 0.8=OH and 0.2=H
+            index=np.where(domain.id==i)[0][0]
+            if (domain.el[index]=='O')|(domain.el[index]=='o'):
+                case_tag=match_lib[i][2]
+                bond_valence_corrected_value=[0.]
+                if case_tag==1.:
+                    bond_valence_corrected_value=[1.8,1.6,1.2,1.,0.8,0.6,0.4,0.2,0.]
+                elif case_tag==2.:
+                    bond_valence_corrected_value=[1.6,1.,0.8,0.4,0.2,0.]
+                elif case_tag==3.:
+                    bond_valence_corrected_value=[0.8,0.2,0.]
+                else:pass
+                #bond_valence_corrected_value=[1.6,1.,0.8,0.2,0.]
+                ref=np.sign(bond_valence_container[i]+np.array(bond_valence_corrected_value)-2.)*(bond_valence_container[i]+np.array(bond_valence_corrected_value)-2.)
+                bond_valence_container[i]=bond_valence_container[i]+bond_valence_corrected_value[np.where(ref==np.min(ref))[0][0]]
+        """
+        cum=sum([bond_valence_container[key] for key in bond_valence_container.keys()])
+        bond_valence_container['total']=cum
+        return bond_valence_container
+        
     #set reference coordinate system defined by atoms with ids in domain, create the coordinate transformation matrix between the old and the new ones
     #T is 3by4 matrix with the last column defining the origin of the new coordinate system
     def create_coor_transformation(self,domain,ids):
@@ -2075,11 +2169,11 @@ class domain_creator():
         r=f2(np.array([0.,0.,0.]),coors_new)
         theta=np.arccos(z/r)
         phi=0
-        if (x>0 & y>0):
+        if (x>0) & (y>0):
             phi=np.arctan(y/x)
-        elif (x>0 & y<0):
+        elif (x>0) & (y<0):
             phi=2*np.pi+np.arctan(y/x)
-        elif (x<0 & y>0)|(x<0 & y<0):
+        elif (x<0) & (y>0)|(x<0) & (y<0):
             phi=np.pi+np.arctan(y/x)
         return r,theta,phi       
                             
@@ -2094,4 +2188,32 @@ class domain_creator():
         coors_old=np.dot(inv(T[:,0:-1]),coors_new)+T[:,-1]
         set_coor(domain,id,coors_old)
         
-        
+    def create_grid_number(self,atm,domain):
+        atm_coor=extract_coor(domain,atm)
+        x,y=atm_coor[0],atm_coor[1]
+        #print atm,atm_coor
+        a,b,c,d= -0.3,0.3,0.9,1.5
+        if ((x>=a) & (x<b))&((y>=a) & (y<b)):
+            return 7
+        elif ((x>= b) & (x< c))&((y>= a) & (y< b )):
+            return 8
+        elif ((x>=c) & (x<d))&((y>= a) & (y<b)):
+            return 9
+        elif ((x>= a) & (x<b))&((y>=b) & (y<c)):
+            return 6     
+        elif ((x>=b) & (x<c))&((y>=b) & (y<c)):
+            return 5 
+        elif ((x>=c) & (x<d))&((y>=b) & (y<c)):
+            return 4
+        elif ((x>= a) & (x<b))&((y>=c) & (y<d)):
+            return 1
+        elif ((x>=b) & (x<c))&((y>=c) & (y<d)):
+            return 2
+        elif ((x>=c) & (x<d))&((y>=c) & (y<d)):
+            return 3   
+
+    def compare_grid(self,grid1,grid2):
+        if grid1==grid2:
+            return None
+        else:
+            return grid_match_lib[grid1][grid2]
