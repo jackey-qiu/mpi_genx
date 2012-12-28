@@ -14,6 +14,17 @@ comm=MPI.COMM_WORLD
 size=comm.Get_size()
 rank=comm.Get_rank()
 
+def find_boundary(n_process,n_jobs,rank):
+    step_len=int(n_jobs/n_process)
+    remainder=int(n_jobs%n_process)
+    left,right=0,0
+    if rank<=remainder-1:
+        left=rank*(step_len+1)
+        right=(rank+1)*(step_len+1)-1
+    elif rank>remainder-1:
+        left=remainder*(step_len+1)+(rank-remainder)*step_len
+        right=remainder*(step_len+1)+(rank-remainder+1)*step_len-1
+    return left,right
 # Okay lets make it possible to batch script this file ...
 if len(sys.argv) !=2:
     print sys.argv
@@ -74,7 +85,7 @@ krkm_list = [[0.9,0.95]]
 # Population size
 use_pop_mult = False             # absolute (F) or relative (T) population size
 pop_mult = 8                     # if use_pop_mult = True, populatio multiplier
-pop_size = 1000                  # if use_pop_mult = False, population size
+pop_size = 960                  # if use_pop_mult = False, population size
 
 # Generations
 use_max_generations = True       # absolute (T) or relative (F) maximum gen.
@@ -346,13 +357,25 @@ for pars in par_list:
     opt.n_fom = 0
 
     # Old leftovers before going parallel, rank 0 calculate fom vec and distribute to the other processors
+    left,right=find_boundary(size,len(opt.pop_vec),rank)
+    tmp_fom_vec=[opt.calc_fom(vec) for vec in opt.pop_vec[left:right+1]]
+    comm.Barrier()
+    tmp_fom_vec=comm.gather(tmp_fom_vec,root=0)
+    if rank==0:
+        tmp_fom_list=[]
+        for i in list(tmp_fom_vec):
+            tmp_fom_list=tmp_fom_list+i
+        tmp_fom_vec=tmp_fom_list
+    tmp_fom_vec=comm.bcast(tmp_fom_vec,root=0)
+    opt.fom_vec=tmp_fom_vec
+    """
     if rank==0:
         opt.fom_vec = [opt.calc_fom(vec) for vec in opt.pop_vec]
         tmp_fom_vec = opt.fom_vec
     tmp_fom_vec=comm.bcast(tmp_fom_vec,root=0)
     if rank!=0:
         opt.fom_vec=tmp_fom_vec
-        
+    """
     [opt.par_evals.append(vec, axis = 0)\
                 for vec in opt.pop_vec]
     [opt.fom_evals.append(vec) for vec in opt.fom_vec]

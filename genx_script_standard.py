@@ -98,7 +98,7 @@ sym_file_Fe=np.array(['Fe1_0','Fe2_0','Fe3_0','Fe4_0','Fe5_0','Fe6_0','Fe7_0','F
 sym_file_O=np.array(['O1_0','O2_0','O3_0','O4_0','O5_0','O6_0','O7_0','O8_0','O9_0','O10_0','O11_0','O12_0',\
     'O1_1_0','O1_2_0','O1_3_0','O1_4_0','O1_5_0','O1_6_0','O1_7_0','O1_8_0','O1_9_0','O1_10_0','O1_11_0','O1_12_0'])
 #file paths
-batch_path_head='C:\\cygwin\\home\\Canrong Qiu\\batchfile\\'
+batch_path_head='/u1/uaf/cqiu/batchfile/'
 discrete_vars_file_domain1='new_varial_file_standard_A.txt'
 sim_batch_file_domain1='sim_batch_file_standard_A.txt'
 scale_operation_file_domain1='scale_operation_file_standard_A.txt'
@@ -115,9 +115,9 @@ rgh.new_var('beta', 0.0)
 #add atoms for bulk and two ref domains (domain0<half layer> and domain0_1<full layer>)
 #In those two reference domains, the atoms are ordered according to first hight (z values), then y values
 #it is a super surface structure by stacking the surface slab on bulk slab, the repeat vector was counted 
-add_atom_in_slab(bulk,batch_path_head+'atom files in bulk.txt')
-add_atom_in_slab(domain0,batch_path_head+'atom files in domain0.txt')
-add_atom_in_slab(domain0_1,batch_path_head+'atom files in domain0_1.txt')
+add_atom_in_slab(bulk,batch_path_head+'bulk.str')
+add_atom_in_slab(domain0,batch_path_head+'half_layer.str')
+add_atom_in_slab(domain0_1,batch_path_head+'full_layer.str')
 ###################create domain classes and initiate the chemical equivalent domains####################
 #when change or create a new domain, make sure the terminated_layer (start from 0)set right
 ######################################setup domain1############################################

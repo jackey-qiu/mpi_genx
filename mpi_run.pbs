@@ -1,10 +1,10 @@
 #!/bin/bash
 #PBS -q standard
 #PBS -l walltime=08:00:00
-#PBS -l nodes=25:ppn=4
+#PBS -l nodes=30:ppn=16
 #PBS -j oe
 module load python/2.7.2a
 cd /center/w/cqiu/mpi_genx/gx_files
-for gx in 1pb_1HO_use_simulated_data_change_range.gx;do
-	mpirun --mca mpi_warn_on_fork 0 -np 100  python ../GenX_run_multiple_mpi.py $gx 2>&1 |tee job.$PBS_JOBID.out
+for gx in genx_file_1pb4HO_ungroup_sorbate.gx;do
+	mpirun --mca mpi_warn_on_fork 0 -np 480  python ../GenX_run_multiple_mpi.py $gx 2>&1 |tee job.$PBS_JOBID.out
 done
