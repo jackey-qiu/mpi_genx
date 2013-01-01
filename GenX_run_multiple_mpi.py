@@ -53,7 +53,7 @@ t_start_0=datetime.now()
 #iter_list = range(5)
 
 #print "the run starts @ %s"%(str(datetime.now()))
-iter_list = [1]
+iter_list = [3]
 #####################
 # figure of merit (FOM) to use
 # needs to be a list of strings, valid names are:
@@ -89,7 +89,7 @@ pop_size = 960                  # if use_pop_mult = False, population size
 
 # Generations
 use_max_generations = True       # absolute (T) or relative (F) maximum gen.
-max_generations = 18000       # if use_max_generations = True
+max_generations = 18000      # if use_max_generations = True
 max_generation_mult = 6          # if use_max_generations = False
 
 # Parallel processing

@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -q standard
+#PBS -q standard_16
 #PBS -l walltime=08:00:00
 #PBS -l nodes=30:ppn=16
 #PBS -j oe

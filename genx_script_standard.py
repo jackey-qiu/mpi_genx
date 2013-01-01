@@ -4,6 +4,7 @@ from models.utils import UserVars
 import numpy as np
 from operator import mul
 from numpy.linalg import inv
+from copy import deepcopy
 
 import domain_creator3
 
@@ -14,13 +15,13 @@ def add_atom(domain,ref_coor=[],ids=[],els=[]):
         domain.add_atom(ids[i],els[i],ref_coor[0],ref_coor[1],ref_coor[2],0.5,1.0,1.0)
 
 #function to export refined atoms positions after fitting
-def print_data(N_sorbate=4,save_file='0001'):
-    data=domain1A._extract_values()
+def print_data(N_sorbate=4,N_atm=40,domain='',z_shift=1,save_file='0001'):
+    data=domain._extract_values()
     index_all=range(len(data[0]))
-    index=index_all[0:20]+index_all[40:40+N_sorbate]
+    index=index_all[0:20]+index_all[N_atm:N_atm+N_sorbate]
     f=open(save_file,'w')
     for i in index:
-        s = '%-5s   %7.5e   %7.5e   %7.5e\n' % (data[3][i],data[0][i]*5.038,(data[1][i]-0.1391)*5.434,(data[2][i]-1.)*7.3707)
+        s = '%-5s   %7.5e   %7.5e   %7.5e\n' % (data[3][i],data[0][i]*5.038,data[1][i]*5.434,(data[2][i]-z_shift)*7.3707)
         f.write(s)
     f.close()
  
@@ -159,8 +160,9 @@ def Sim(data):
     domain_class_1.init_sim_batch2(batch_path_head+sim_batch_file_domain1)
     domain_class_1.scale_opt_batch2b(batch_path_head+scale_operation_file_domain1)
     #create matching lib dynamically during fitting
-    create_match_lib_during_fitting(domain_class=domain_class_1,domain=domain1A,atm_list=atm_list_1A,pb_list=pb_list_domain1a,HO_list=HO_list_domain1a,match_lib=match_lib_1A)
-    create_match_lib_during_fitting(domain_class=domain_class_1,domain=domain1B,atm_list=atm_list_1B,pb_list=pb_list_domain1b,HO_list=HO_list_domain1b,match_lib=match_lib_1B)
+    match_lib_fitting_1A,match_lib_fitting_1B=deepcopy(match_lib_1A),deepcopy(match_lib_1B)
+    create_match_lib_during_fitting(domain_class=domain_class_1,domain=domain1A,atm_list=atm_list_1A,pb_list=pb_list_domain1a,HO_list=HO_list_domain1a,match_lib=match_lib_fitting_1A)
+    create_match_lib_during_fitting(domain_class=domain_class_1,domain=domain1B,atm_list=atm_list_1B,pb_list=pb_list_domain1b,HO_list=HO_list_domain1b,match_lib=match_lib_fitting_1B)
     
     F =[]
     beta=rgh.beta
@@ -171,13 +173,13 @@ def Sim(data):
         f=np.array([])
         #for extra data set calculate the bond valence instead of structure factor
         if (data_set.extra_data['h'][0]==10):
-            bond_valence=domain_class_1.cal_bond_valence3(domain=domain1A,match_lib=match_lib_1A)
+            bond_valence=domain_class_1.cal_bond_valence3(domain=domain1A,match_lib=match_lib_fitting_1A)
             t=[]
             for i in match_order_1A:
                 t.append(bond_valence[i])
             f=np.array(t)
         elif (data_set.extra_data['h'][0]==11):
-            bond_valence=domain_class_1.cal_bond_valence3(domain=domain1B,match_lib=match_lib_1B)
+            bond_valence=domain_class_1.cal_bond_valence3(domain=domain1B,match_lib=match_lib_fitting_1B)
             t=[]
             for i in match_order_1B:
                 t.append(bond_valence[i])
