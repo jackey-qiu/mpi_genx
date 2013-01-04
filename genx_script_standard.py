@@ -83,8 +83,9 @@ rgh_domain1=UserVars()
 #atom ids for grouping(containerB must be the associated chemically equivalent atoms)
 ids_domain1A=['Pb1a','HO1a','HO2a','HO3a','HO4a',"O1_1_0","O1_2_0","O1_3_0","O1_4_0","Fe1_4_0","Fe1_6_0","O1_5_0","O1_6_0"]
 ids_domain1B=['Pb1b','HO1b','HO2b','HO3b','HO4b',"O1_8_0","O1_7_0","O1_10_0","O1_9_0","Fe1_12_0","Fe1_10_0","O1_12_0","O1_11_0"]
-#group name container
+#group name container(discrete:single atom from each domain, sequence:double atoms at same layer from each domain)
 discrete_gp_names=['gp_Pb1','gp_HO1','gp_HO2','gp_HO3','gp_HO4','gp_O1O8','gp_O2O7','gp_O3O10','gp_O4O9','gp_Fe4Fe12','gp_Fe6Fe10','gp_O5O12','gp_O6O11']
+sequence_gp_names=['gp_O1O2_O7O8','gp_Fe2Fe3_Fe8Fe9','gp_O3O4_O9O10','gp_Fe4Fe6_Fe10Fe12','gp_O5O6_O11O12','gp_O7O8_O1O2','gp_Fe8Fe9_Fe2Fe3']
 #atom ids being considered for bond valence check
 atm_list_1A=['O1_1_0','O1_2_0','O1_3_0','O1_4_0','O1_5_0','O1_6_0','Fe1_4_0','Fe1_6_0']
 atm_list_1B=['O1_8_0','O1_7_0','O1_10_0','O1_9_0','O1_12_0','O1_11_0','Fe1_12_0','Fe1_10_0']
@@ -139,6 +140,7 @@ atm_gp_list_domain1=domain_class_1.grouping_sequence_layer(domain=[domain1A,doma
                             sym_file=sym_file={'Fe':batch_path_head+'Fe output file for Genx reading.txt','O':batch_path_head+'O output file for Genx reading.txt'},\
                             id_match_in_sym={'Fe':sym_file_Fe,'O':sym_file_O},layers_N=7,use_sym=False)
 domain_class_1.atm_gp_list_domain1=atm_gp_list_domain1
+for i in range(len(sequence_gp_names)):vars()[sequence_gp_names[i]]=atm_gp_list_domain1[i]
 #you may also only want to group each chemically equivalent atom from two domains
 atm_gp_discrete_list_domain1=[]
 for i in range(len(ids_domain1A)):
