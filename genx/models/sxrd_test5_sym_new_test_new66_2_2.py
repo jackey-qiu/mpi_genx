@@ -926,6 +926,7 @@ class AtomGroup:
         def set_pars(val):
             #print self.sym_file.shape
             for i in range(len(funcs)):
+                sym_row=0
                 if self.use_sym==True:
                     sym_row=np.where(self.id_order_in_sym_file==self.ids[i])
                     #print i,sym_row

@@ -94,16 +94,15 @@ match_order_1B=pb_list_domain1b+HO_list_domain1b+atm_list_1B
 ref_id_list=["O1_1_0","O1_2_0","Fe1_2_0","Fe1_3_0","O1_3_0","O1_4_0","Fe1_4_0","Fe1_6_0","O1_5_0","O1_6_0","O1_7_0","O1_8_0","Fe1_8_0","Fe1_9_0","O1_9_0","O1_10_0","Fe1_10_0","Fe1_12_0","O1_11_0","O1_12_0",\
 "O_1_0","O_2_0","Fe_2_0","Fe_3_0","O_3_0","O_4_0","Fe_4_0","Fe_6_0","O_5_0","O_6_0","O_7_0","O_8_0","Fe_8_0","Fe_9_0","O_9_0","O_10_0","Fe_10_0","Fe_12_0","O_11_0","O_12_0"]
 #the matching row Id information in the symfile
-sym_file_Fe=np.array(['Fe1_0','Fe2_0','Fe3_0','Fe4_0','Fe5_0','Fe6_0','Fe7_0','Fe8_0','Fe9_0','Fe10_0','Fe11_0','Fe12_0',\
-    'Fe1_1_0','Fe1_2_0','Fe1_3_0','Fe1_4_0','Fe1_5_0','Fe1_6_0','Fe1_7_0','Fe1_8_0','Fe1_9_0','Fe1_10_0','Fe1_11_0','Fe1_12_0'])
-sym_file_O=np.array(['O1_0','O2_0','O3_0','O4_0','O5_0','O6_0','O7_0','O8_0','O9_0','O10_0','O11_0','O12_0',\
-    'O1_1_0','O1_2_0','O1_3_0','O1_4_0','O1_5_0','O1_6_0','O1_7_0','O1_8_0','O1_9_0','O1_10_0','O1_11_0','O1_12_0'])
+sym_file_Fe=np.array(['Fe2_0','Fe3_0','Fe4_0','Fe6_0','Fe9_0','Fe8_0','Fe12_0','Fe10_0',\
+    'Fe1_2_0','Fe1_3_0','Fe1_4_0','Fe1_6_0','Fe1_9_0','Fe1_8_0','Fe1_12_0','Fe1_10_0'])
+sym_file_O=np.array(['O1_0','O2_0','O3_0','O4_0','O5_0','O6_0','O8_0','O7_0','O10_0','O9_0','O12_0','O11_0',\
+    'O1_1_0','O1_2_0','O1_3_0','O1_4_0','O1_5_0','O1_6_0','O1_8_0','O1_7_0','O1_10_0','O1_9_0','O1_12_0','O1_11_0'])
 #file paths
 batch_path_head='/u1/uaf/cqiu/batchfile/'
 discrete_vars_file_domain1='new_varial_file_standard_A.txt'
 sim_batch_file_domain1='sim_batch_file_standard_A.txt'
 scale_operation_file_domain1='scale_operation_file_standard_A.txt'
-sym_file_head='/home/jackey/genx_data/'
 ###############################################setting slabs##################################################################    
 unitcell = model.UnitCell(5.038, 5.434, 7.3707, 90, 90, 90)
 inst = model.Instrument(wavel = .833, alpha = 2.0)
@@ -137,7 +136,8 @@ domain_class_1.set_discrete_new_vars_batch(batch_path_head+discrete_vars_file_do
 #note the grouping here is on a layer basis, ie atoms of same layer are groupped together
 #you may group in symmetry, then atoms of same layer are not independent.
 atm_gp_list_domain1=domain_class_1.grouping_sequence_layer(domain=[domain1A,domain1B], first_atom_id=['O1_1_0','O1_7_0'],\
-    sym_file=None,id_match_in_sym={'Fe':sym_file_Fe,'O':sym_file_O},layers_N=7,use_sym=False)
+                            sym_file=sym_file={'Fe':batch_path_head+'Fe output file for Genx reading.txt','O':batch_path_head+'O output file for Genx reading.txt'},\
+                            id_match_in_sym={'Fe':sym_file_Fe,'O':sym_file_O},layers_N=7,use_sym=False)
 domain_class_1.atm_gp_list_domain1=atm_gp_list_domain1
 #you may also only want to group each chemically equivalent atom from two domains
 atm_gp_discrete_list_domain1=[]
