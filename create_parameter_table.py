@@ -28,5 +28,4 @@ class create_table:
 
 if __name__=='__main__':
     test1=create_parameter_table.create_table('raw match file.txt','table file.txt')
-    test1.create_tab()
     

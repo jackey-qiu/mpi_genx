@@ -31,6 +31,12 @@ def extract_coor(domain,id):
     z=domain.z[index]+domain.dz1[index]+domain.dz2[index]+domain.dz3[index]
     return np.array([x,y,z])
 
+def extract_component(domain,id,name_list):
+    index=np.where(domain.id==id)[0][0]
+    temp=[vars(domain)[name][index] for name in name_list]
+    for i in range(len(name_list)):
+        print name_list[i]+'=',temp[i]
+        
 #set coor to atom with id in domain
 def set_coor(domain,id,coor):
     index=np.where(domain.id==id)[0][0]
