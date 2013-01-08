@@ -5,4 +5,4 @@ job*
 *.o*
 *~
 *.xyz
-*_run*.gx
+*.gx
