@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import models.sxrd_test5_sym_new_test_new66_2 as model
+import models.sxrd_test5_sym_new_test_new66_2_2 as model
 from models.utils import UserVars
 import numpy as np
 from operator import mul
@@ -62,18 +62,19 @@ grid_match_lib[8]={2:'-y',3:'-y',4:None,5:None,6:None,7:None,1:'-y',9:None}
 grid_match_lib[9]={2:'-y',3:'-y',4:None,5:None,6:'+x',7:'+x',8:None,1:'+x-y'}
 
 class domain_creator():
-    def __init__(self,ref_domain,id_list,terminated_layer=0,new_var_module=None):
+    def __init__(self,ref_domain,id_list,terminated_layer=0,domain_tag='_D1',new_var_module=None):
         #id_list is a list of id in the order of ref_domain,terminated_layer is the index number of layer to be considered
         #for termination,domain_N is a index number for this specific domain, new_var_module is a UserVars module to be used in
         #function of set_new_vars
         self.ref_domain=ref_domain
         self.id_list=id_list
         self.terminated_layer=terminated_layer
+        self.domain_tag=domain_tag
         self.share_face,self.share_edge,self.share_corner=(False,False,False)
         #self.anchor_list=[]
         self.polyhedra_list=[]
         self.new_var_module=new_var_module
-        self.domain_A,self.domain_B=self.create_equivalent_domains()
+        self.domain_A,self.domain_B=self.create_equivalent_domains_2()
     
     def build_super_cell(self,ref_domain,rem_atom_ids=None):
     #build a super cell based on the ref_domain, the super cell is actually two domains stacking together in x direction
@@ -114,6 +115,20 @@ class domain_creator():
             #print id in new_domain_B.id
             new_domain_B.del_atom(id)
         return new_domain_A,new_domain_B
+
+    def create_equivalent_domains_2(self):
+        new_domain_A=self.ref_domain.copy()
+        new_domain_B=self.ref_domain.copy()
+        for id in self.id_list[:self.terminated_layer*2]:
+            if id!=[]:
+                new_domain_A.del_atom(id)
+        #number 5 here is crystal specific, here is the case for hematite
+        for id in self.id_list[:(self.terminated_layer+5)*2]:
+            #print id in new_domain_B.id
+            new_domain_B.del_atom(id)
+        new_domain_A.id=map(lambda x:x+self.domain_tag+'A',new_domain_A.id)
+        new_domain_B.id=map(lambda x:x+self.domain_tag+'B',new_domain_B.id)
+        return new_domain_A.copy(),new_domain_B.copy()
         
     def add_sorbate_polyhedra(self,domain,r=0.1,theta=[0.,0.],phi=[np.pi/2,np.pi/2],polyhedra_flag='tetrahedra',\
             extra_flag='1_1+0_1',extra_flag2='type1',attach_atm_id=[['id1','id2'],['id3','id4']],offset=[[None,None],[None,None]],el='Pb',id_attach=[],use_ref=False):
@@ -1271,9 +1286,11 @@ class domain_creator():
             atm_gp_list.append(temp_atm_gp)
 
         return atm_gp_list
-    def grouping_discrete_layer(self,domain=[],atom_ids=[],sym_file=None,id_match_in_sym=[],use_sym=False):
+    def grouping_discrete_layer(self,domain=[],atom_ids=[],sym_file=None,id_match_in_sym={},use_sym=False):
         #we usually do discrete grouping for sorbates, so there is no symmetry used in this case
-        atm_gp=model.AtomGroup(id_in_sym_file=id_match_in_sym,filename=sym_file,use_sym=use_sym)
+        index=np.where(domain[0].id==atom_ids[0])[0][0]
+        el=domain[0].el[index]
+        atm_gp=model.AtomGroup(id_in_sym_file=id_match_in_sym[el],filename=sym_file[el],use_sym=use_sym)
         for i in range(len(domain)):
             atm_gp.add_atom(domain[i],atom_ids[i])
         return atm_gp
@@ -1675,6 +1692,7 @@ class domain_creator():
         basis=np.array([5.038,5.434,7.3707])
         f1=lambda domain,index:np.array([domain.x[index]+domain.dx1[index],domain.y[index]+domain.dy1[index],domain.z[index]+domain.dz1[index]])*basis
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
+        print domain.id,id
         index=np.where(domain.id==id)[0][0]
         [neighbor_container.append(domain.id[i]) for i in range(len(domain.id)) if (f2(f1(domain,index),f1(domain,i))<=searching_range)&(f2(f1(domain,index),f1(domain,i))!=0.)]
         for i in neighbor_container:
