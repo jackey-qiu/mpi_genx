@@ -88,10 +88,10 @@ HO_list_domain1a=['HO1_D1A','HO2_D1A','HO3_D1A','HO4_D1A']
 HO_list_domain1b=['HO1_D1B','HO2_D1B','HO3_D1B','HO4_D1B']
 rgh_domain1=UserVars()
 #atom ids for grouping(containerB must be the associated chemically equivalent atoms)
-ids_domain1A=['Pb1_D1A','HO1_D1A','HO2_D1A','HO3_D1A','HO4_D1A',"O1_1_0_D1A","O1_2_0_D1A","O1_3_0_D1A","O1_4_0_D1A","Fe1_4_0_D1A","Fe1_6_0_D1A","O1_5_0_D1A","O1_6_0_D1A"]
-ids_domain1B=['Pb1_D1B','HO1_D1B','HO2_D1B','HO3_D1B','HO4_D1B',"O1_7_0_D1B","O1_8_0_D1B","O1_9_0_D1B","O1_10_0_D1B","Fe1_10_0_D1B","Fe1_12_0_D1B","O1_11_0_D1B","O1_12_0_D1B"]
+ids_domain1A=['Pb1_D1A','HO1_D1A','HO2_D1A','HO3_D1A','HO4_D1A',"O1_1_0_D1A","O1_2_0_D1A","O1_3_0_D1A","O1_4_0_D1A","Fe1_4_0_D1A","Fe1_6_0_D1A","O1_5_0_D1A","O1_6_0_D1A","O1_7_0_D1A","O1_8_0_D1A","Fe1_8_0_D1A","Fe1_9_0_D1A"]
+ids_domain1B=['Pb1_D1B','HO1_D1B','HO2_D1B','HO3_D1B','HO4_D1B',"O1_7_0_D1B","O1_8_0_D1B","O1_9_0_D1B","O1_10_0_D1B","Fe1_10_0_D1B","Fe1_12_0_D1B","O1_11_0_D1B","O1_12_0_D1B","O1_0_D1B","O2_0_D1B","Fe2_0_D1B","Fe3_0_D1B"]
 #group name container(discrete:single atom from each domain, sequence:double atoms at same layer from each domain)
-discrete_gp_names=['gp_Pb1_D1','gp_HO1_D1','gp_HO2_D1','gp_HO3_D1','gp_HO4_D1','gp_O1O7_D1','gp_O2O8_D1','gp_O3O9_D1','gp_O4O10_D1','gp_Fe4Fe10_D1','gp_Fe6Fe12_D1','gp_O5O11_D1','gp_O6O12_D1']
+discrete_gp_names=['gp_Pb1_D1','gp_HO1_D1','gp_HO2_D1','gp_HO3_D1','gp_HO4_D1','gp_O1O7_D1','gp_O2O8_D1','gp_O3O9_D1','gp_O4O10_D1','gp_Fe4Fe10_D1','gp_Fe6Fe12_D1','gp_O5O11_D1','gp_O6O12_D1','gp_O7O1_D1','gp_O8O2_D1','gp_Fe8Fe2_D1','gp_Fe9Fe3_D1']
 sequence_gp_names=['gp_O1O2_O7O8_D1','gp_Fe2Fe3_Fe8Fe9_D1','gp_O3O4_O9O10_D1','gp_Fe4Fe6_Fe10Fe12_D1','gp_O5O6_O11O12_D1','gp_O7O8_O1O2_D1','gp_Fe8Fe9_Fe2Fe3_D1']
 #atom ids being considered for bond valence check
 atm_list_1A=['O1_1_0_D1A','O1_2_0_D1A','O1_3_0_D1A','O1_4_0_D1A','O1_5_0_D1A','O1_6_0_D1A','Fe1_4_0_D1A','Fe1_6_0_D1A']
@@ -100,13 +100,13 @@ match_order_1A=pb_list_domain1a+HO_list_domain1a+atm_list_1A
 match_order_1B=pb_list_domain1b+HO_list_domain1b+atm_list_1B
 #id list according to the order in the reference domain   
 ref_id_list=["O1_1_0","O1_2_0","Fe1_2_0","Fe1_3_0","O1_3_0","O1_4_0","Fe1_4_0","Fe1_6_0","O1_5_0","O1_6_0","O1_7_0","O1_8_0","Fe1_8_0","Fe1_9_0","O1_9_0","O1_10_0","Fe1_10_0","Fe1_12_0","O1_11_0","O1_12_0",\
-"O_1_0","O_2_0","Fe_2_0","Fe_3_0","O_3_0","O_4_0","Fe_4_0","Fe_6_0","O_5_0","O_6_0","O_7_0","O_8_0","Fe_8_0","Fe_9_0","O_9_0","O_10_0","Fe_10_0","Fe_12_0","O_11_0","O_12_0"]
+"O1_0","O2_0","Fe2_0","Fe3_0","O3_0","O4_0","Fe4_0","Fe6_0","O5_0","O6_0","O7_0","O8_0","Fe8_0","Fe9_0","O9_0","O10_0","Fe10_0","Fe12_0","O11_0","O12_0"]
 #the matching row Id information in the symfile
-sym_file_Fe=np.array(['Fe2_0_D1A','Fe3_0_D1A','Fe4_0_D1A','Fe6_0_D1A','Fe8_0_D1A','Fe9_0_D1A','Fe10_0_D1A','Fe12_0_D1A',\
-    'Fe1_2_0_D1A','Fe1_3_0_D1A','Fe1_4_0_D1A','Fe1_6_0_D1A','Fe1_8_0_D1A','Fe1_9_0_D1A','Fe1_10_0_D1A','Fe1_12_0_D1A'])
+sym_file_Fe=np.array(['Fe1_2_0_D1A','Fe1_3_0_D1A','Fe1_4_0_D1A','Fe1_6_0_D1A','Fe1_8_0_D1A','Fe1_9_0_D1A','Fe1_10_0_D1A','Fe1_12_0_D1A',\
+                'Fe2_0_D1A','Fe3_0_D1A','Fe4_0_D1A','Fe6_0_D1A','Fe8_0_D1A','Fe9_0_D1A','Fe10_0_D1A','Fe12_0_D1A'])
 sym_file_Fe=np.append(sym_file_Fe,map(lambda x:x[:-1]+'B',sym_file_Fe[4:]))
-sym_file_O=np.array(['O1_0_D1A','O2_0_D1A','O3_0_D1A','O4_0_D1A','O5_0_D1A','O6_0_D1A','O7_0_D1A','O8_0_D1A','O9_0_D1A','O10_0_D1A','O11_0_D1A','O12_0_D1A',\
-    'O1_1_0_D1A','O1_2_0_D1A','O1_3_0_D1A','O1_4_0_D1A','O1_5_0_D1A','O1_6_0_D1A','O1_7_0_D1A','O1_8_0_D1A','O1_9_0_D1A','O1_10_0_D1A','O1_11_0_D1A','O1_12_0_D1A'])
+sym_file_O=np.array(['O1_1_0_D1A','O1_2_0_D1A','O1_3_0_D1A','O1_4_0_D1A','O1_5_0_D1A','O1_6_0_D1A','O1_7_0_D1A','O1_8_0_D1A','O1_9_0_D1A','O1_10_0_D1A','O1_11_0_D1A','O1_12_0_D1A',\
+                'O1_0_D1A','O2_0_D1A','O3_0_D1A','O4_0_D1A','O5_0_D1A','O6_0_D1A','O7_0_D1A','O8_0_D1A','O9_0_D1A','O10_0_D1A','O11_0_D1A','O12_0_D1A'])
 sym_file_O=np.append(sym_file_O,map(lambda x:x[:-1]+'B',sym_file_O[6:]))
 sym_file_HO=np.array(HO_list_domain1a+HO_list_domain1b)
 sym_file_O=np.append(sym_file_HO,sym_file_O)
