@@ -1692,7 +1692,7 @@ class domain_creator():
         basis=np.array([5.038,5.434,7.3707])
         f1=lambda domain,index:np.array([domain.x[index]+domain.dx1[index],domain.y[index]+domain.dy1[index],domain.z[index]+domain.dz1[index]])*basis
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
-        print domain.id,id
+        #print domain.id,id
         index=np.where(domain.id==id)[0][0]
         [neighbor_container.append(domain.id[i]) for i in range(len(domain.id)) if (f2(f1(domain,index),f1(domain,i))<=searching_range)&(f2(f1(domain,index),f1(domain,i))!=0.)]
         for i in neighbor_container:
