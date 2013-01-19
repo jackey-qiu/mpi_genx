@@ -1690,7 +1690,7 @@ class domain_creator():
         offset=[]
         full_offset=['+x','-x','+y','-y','+x-y','+x+y','-x+y','-x-y']
         basis=np.array([5.038,5.434,7.3707])
-        f1=lambda domain,index:np.array([domain.x[index]+domain.dx1[index],domain.y[index]+domain.dy1[index],domain.z[index]+domain.dz1[index]])*basis
+        f1=lambda domain,index:np.array([domain.x[index]+domain.dx1[index]+domain.dx2[index]+domain.dx3[index],domain.y[index]+domain.dy1[index]+domain.dy2[index]+domain.dy3[index],domain.z[index]+domain.dz1[index]+domain.dz2[index]+domain.dz3[index]])*basis
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
         #print domain.id,id
         index=np.where(domain.id==id)[0][0]
@@ -2032,7 +2032,10 @@ class domain_creator():
         #return a lib with the same key as match_lib, the value for each key is the bond valence calculated
         bond_valence_container={}
         for i in match_lib.keys():
-            match_lib[i].append(0)
+            try:
+                match_lib[i][2]=0
+            except:
+                match_lib[i].append(0)
             bond_valence_container[i]=0
             
         basis=np.array([5.038,5.434,7.3707])
@@ -2077,24 +2080,24 @@ class domain_creator():
                 if dist<3.:#take it counted only when they are not two far away
                     bond_valence_container[i]=bond_valence_container[i]+np.exp((r0-dist)/0.37)
                     match_lib[i][2]=match_lib[i][2]+1
-        """
+        
         for i in bond_valence_container.keys():
             #try to add hydrogen or hydrogen bond to the oxygen with 1.6=2*OH, 1.=OH+H, 0.8=OH and 0.2=H
             index=np.where(domain.id==i)[0][0]
             if (domain.el[index]=='O')|(domain.el[index]=='o'):
                 case_tag=match_lib[i][2]
                 bond_valence_corrected_value=[0.]
-                if case_tag==1.:
+                if ((case_tag==1.)&(bond_valence_container[i]<2)):
                     bond_valence_corrected_value=[1.8,1.6,1.2,1.,0.8,0.6,0.4,0.2,0.]
-                elif case_tag==2.:
+                elif ((case_tag==2.)&(bond_valence_container[i]<2)):
                     bond_valence_corrected_value=[1.6,1.,0.8,0.4,0.2,0.]
-                elif case_tag==3.:
+                elif ((case_tag==3.)&(bond_valence_container[i]<2)):
                     bond_valence_corrected_value=[0.8,0.2,0.]
                 else:pass
                 #bond_valence_corrected_value=[1.6,1.,0.8,0.2,0.]
                 ref=np.sign(bond_valence_container[i]+np.array(bond_valence_corrected_value)-2.)*(bond_valence_container[i]+np.array(bond_valence_corrected_value)-2.)
                 bond_valence_container[i]=bond_valence_container[i]+bond_valence_corrected_value[np.where(ref==np.min(ref))[0][0]]
-        """
+        
         return bond_valence_container
         
     def cal_bond_valence4(self,domain,center_atm,match_list):

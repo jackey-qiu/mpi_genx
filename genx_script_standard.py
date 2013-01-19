@@ -161,8 +161,8 @@ domain_class_1.atm_gp_discrete_list_domain1=atm_gp_discrete_list_domain1
 for i in range(len(discrete_gp_names)):vars()[discrete_gp_names[i]]=atm_gp_discrete_list_domain1[i] 
 #print gp_O1O8.ids
 #####################################do bond valence matching###################################
-match_lib_1A=create_match_lib_before_fitting(domain_class=domain_class_1,domain=domain_class_1.build_super_cell(ref_domain=domain_class_1.create_equivalent_domains_2()[0],rem_atom_ids=None),atm_list=atm_list_1A,search_range=2.3)
-match_lib_1B=create_match_lib_before_fitting(domain_class=domain_class_1,domain=domain_class_1.build_super_cell(ref_domain=domain_class_1.create_equivalent_domains_2()[1],rem_atom_ids=None),atm_list=atm_list_1B,search_range=2.3)
+match_lib_1A=create_match_lib_before_fitting(domain_class=domain_class_1,domain=domain_class_1.build_super_cell(ref_domain=domain_class_1.create_equivalent_domains_2()[0],rem_atom_ids=['Fe1_2_0_D1A','Fe1_3_0_D1A']),atm_list=atm_list_1A,search_range=2.3)
+match_lib_1B=create_match_lib_before_fitting(domain_class=domain_class_1,domain=domain_class_1.build_super_cell(ref_domain=domain_class_1.create_equivalent_domains_2()[1],rem_atom_ids=['Fe1_8_0_D1B','Fe1_9_0_D1B']),atm_list=atm_list_1B,search_range=2.3)
 ###########################setup domain2################################
 #same reference domain,but set the occupancy of second iron layer to 0
 #edit and uncomment following segment if you want to consider full layer case
