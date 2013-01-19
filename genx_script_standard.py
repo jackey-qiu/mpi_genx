@@ -79,11 +79,11 @@ discrete_vars_file_domain1='new_varial_file_standard_A.txt'
 sim_batch_file_domain1='sim_batch_file_standard_A.txt'
 scale_operation_file_domain1='scale_operation_file_standard_A.txt'
 #sorbate ids
-sorbate_ids_domain1a=['Pb1_D1A','Pb2_D1A','HO1_D1A','HO2_D1A','HO3_D1A','HO4_D1A','HO5_D1A','HO6_D1A']
-sorbate_ids_domain1b=['Pb1_D1B','Pb2_D1B','HO1_D1B','HO2_D1B','HO3_D1B','HO4_D1B','HO5_D1B','HO6_D1B']
-sorbate_els_domain1=['Pb','Pb','O','O','O','O','O','O']
-pb_list_domain1a=['Pb1_D1A','Pb2_D1A']
-pb_list_domain1b=['Pb1_D1B','Pb2_D1B']
+sorbate_ids_domain1a=['Pb1_D1A','Pb2_D1A','Pb3_D1A','HO1_D1A','HO2_D1A','HO3_D1A','HO4_D1A','HO5_D1A','HO6_D1A']
+sorbate_ids_domain1b=['Pb1_D1B','Pb2_D1B','Pb3_D1B','HO1_D1B','HO2_D1B','HO3_D1B','HO4_D1B','HO5_D1B','HO6_D1B']
+sorbate_els_domain1=['Pb','Pb','Pb','O','O','O','O','O','O']
+pb_list_domain1a=['Pb1_D1A','Pb2_D1A','Pb3_D1A']
+pb_list_domain1b=['Pb1_D1B','Pb2_D1B','Pb3_D1B']
 HO_list_domain1a=['HO1_D1A','HO2_D1A','HO3_D1A','HO4_D1A','HO5_D1A','HO6_D1A']
 HO_list_domain1b=['HO1_D1B','HO2_D1B','HO3_D1B','HO4_D1B','HO5_D1B','HO6_D1B']
 rgh_domain1=UserVars()
@@ -91,7 +91,7 @@ rgh_domain1=UserVars()
 ids_domain1A=sorbate_ids_domain1a+["O1_1_0_D1A","O1_2_0_D1A","O1_3_0_D1A","O1_4_0_D1A","Fe1_4_0_D1A","Fe1_6_0_D1A","O1_5_0_D1A","O1_6_0_D1A","O1_7_0_D1A","O1_8_0_D1A","Fe1_8_0_D1A","Fe1_9_0_D1A"]
 ids_domain1B=sorbate_ids_domain1b+["O1_7_0_D1B","O1_8_0_D1B","O1_9_0_D1B","O1_10_0_D1B","Fe1_10_0_D1B","Fe1_12_0_D1B","O1_11_0_D1B","O1_12_0_D1B","O1_0_D1B","O2_0_D1B","Fe2_0_D1B","Fe3_0_D1B"]
 #group name container(discrete:single atom from each domain, sequence:double atoms at same layer from each domain)
-discrete_gp_names=['gp_Pb1_D1','gp_Pb2_D1','gp_HO1_D1','gp_HO2_D1','gp_HO3_D1','gp_HO4_D1','gp_HO5_D1','gp_HO6_D1','gp_O1O7_D1','gp_O2O8_D1','gp_O3O9_D1','gp_O4O10_D1','gp_Fe4Fe10_D1','gp_Fe6Fe12_D1','gp_O5O11_D1','gp_O6O12_D1','gp_O7O1_D1','gp_O8O2_D1','gp_Fe8Fe2_D1','gp_Fe9Fe3_D1']
+discrete_gp_names=['gp_Pb1_D1','gp_Pb2_D1','gp_Pb3_D1','gp_HO1_D1','gp_HO2_D1','gp_HO3_D1','gp_HO4_D1','gp_HO5_D1','gp_HO6_D1','gp_O1O7_D1','gp_O2O8_D1','gp_O3O9_D1','gp_O4O10_D1','gp_Fe4Fe10_D1','gp_Fe6Fe12_D1','gp_O5O11_D1','gp_O6O12_D1','gp_O7O1_D1','gp_O8O2_D1','gp_Fe8Fe2_D1','gp_Fe9Fe3_D1']
 sequence_gp_names=['gp_O1O2_O7O8_D1','gp_Fe2Fe3_Fe8Fe9_D1','gp_O3O4_O9O10_D1','gp_Fe4Fe6_Fe10Fe12_D1','gp_O5O6_O11O12_D1','gp_O7O8_O1O2_D1','gp_Fe8Fe9_Fe2Fe3_D1']
 #atom ids being considered for bond valence check
 atm_list_1A=['O1_1_0_D1A','O1_2_0_D1A','O1_3_0_D1A','O1_4_0_D1A','O1_5_0_D1A','O1_6_0_D1A','Fe1_4_0_D1A','Fe1_6_0_D1A']
