@@ -79,8 +79,8 @@ def create_sorbate_ids(el='Pb',N=2,tag='_D1A'):
 #file paths
 #batch_path_head='/u1/uaf/cqiu/batchfile/'
 batch_path_head='D:\\Github\\batchfile\\'
-Pb_NUMBER=1
-O_NUMBER=4
+Pb_NUMBER=[1,1]#domain1 has 1 pb and domain2 has 1 pb too
+O_NUMBER=[4,4]
 DOMAIN_NUMBER=2
 #sorbate ids
 for i in range(DOMAIN_NUMBER):
@@ -89,13 +89,13 @@ for i in range(DOMAIN_NUMBER):
     vars()['sim_batch_file_domain'+str(int(i+1))]='sim_batch_file_domain'+str(int(i+1))+'.txt'
     vars()['scale_operation_file_domain'+str(int(i+1))]='scale_operation_file_domain'+str(int(i+1))+'.txt'
     #sorbate list
-    vars()['pb_list_domain'+str(int(i+1))+'a']=create_sorbate_ids(el='Pb',N=Pb_NUMBER,tag='_D'+str(int(i+1))+'A')
-    vars()['pb_list_domain'+str(int(i+1))+'b']=create_sorbate_ids(el='Pb',N=Pb_NUMBER,tag='_D'+str(int(i+1))+'B')
-    vars()['HO_list_domain'+str(int(i+1))+'a']=create_sorbate_ids(el='HO',N=O_NUMBER,tag='_D'+str(int(i+1))+'A')
-    vars()['HO_list_domain'+str(int(i+1))+'b']=create_sorbate_ids(el='HO',N=O_NUMBER,tag='_D'+str(int(i+1))+'B')    
+    vars()['pb_list_domain'+str(int(i+1))+'a']=create_sorbate_ids(el='Pb',N=Pb_NUMBER[i],tag='_D'+str(int(i+1))+'A')
+    vars()['pb_list_domain'+str(int(i+1))+'b']=create_sorbate_ids(el='Pb',N=Pb_NUMBER[i],tag='_D'+str(int(i+1))+'B')
+    vars()['HO_list_domain'+str(int(i+1))+'a']=create_sorbate_ids(el='HO',N=O_NUMBER[i],tag='_D'+str(int(i+1))+'A')
+    vars()['HO_list_domain'+str(int(i+1))+'b']=create_sorbate_ids(el='HO',N=O_NUMBER[i],tag='_D'+str(int(i+1))+'B')    
     vars()['sorbate_ids_domain'+str(int(i+1))+'a']=vars()['pb_list_domain'+str(int(i+1))+'a']+vars()['HO_list_domain'+str(int(i+1))+'a']
     vars()['sorbate_ids_domain'+str(int(i+1))+'b']=vars()['pb_list_domain'+str(int(i+1))+'b']+vars()['HO_list_domain'+str(int(i+1))+'b']
-    vars()['sorbate_els_domain'+str(int(i+1))]=['Pb']*Pb_NUMBER+['O']*O_NUMBER
+    vars()['sorbate_els_domain'+str(int(i+1))]=['Pb']*Pb_NUMBER[i]+['O']*O_NUMBER[i]
     #user defined variables
     vars()['rgh_domain'+str(int(i+1))]=UserVars()
     #atom ids for grouping(containerB must be the associated chemically equivalent atoms)
@@ -132,10 +132,11 @@ for i in range(DOMAIN_NUMBER):
 ref_id_list=["O1_1_0","O1_2_0","Fe1_2_0","Fe1_3_0","O1_3_0","O1_4_0","Fe1_4_0","Fe1_6_0","O1_5_0","O1_6_0","O1_7_0","O1_8_0","Fe1_8_0","Fe1_9_0","O1_9_0","O1_10_0","Fe1_10_0","Fe1_12_0","O1_11_0","O1_12_0",\
 'O1_1_1','O1_2_1','Fe1_2_1','Fe1_3_1','O1_3_1','O1_4_1','Fe1_4_1','Fe1_6_1','O1_5_1','O1_6_1','O1_7_1','O1_8_1','Fe1_8_1','Fe1_9_1','O1_9_1','O1_10_1','Fe1_10_1','Fe1_12_1','O1_11_1','O1_12_1']
 
-#symmetry library 
-sym_file={'Fe':batch_path_head+'Fe output file for Genx reading.txt',\
-          'O':batch_path_head+'O output file for Genx reading.txt',\
-          'Pb':batch_path_head+'Pb output file for Genx reading.txt'}
+#symmetry library, note the Fe output file is the same, but O and Pb output file is different due to different sorbate configuration
+for i in range(DOMAIN_NUMBER): 
+    vars()['sym_file_domain'+str(int(i+1))]={'Fe':batch_path_head+'Fe output file for Genx reading.txt',\
+              'O':batch_path_head+'O output file for Genx reading'+str(O_NUMBER[i])+'.txt',\
+              'Pb':batch_path_head+'Pb output file for Genx reading'+str(Pb_NUMBER[i])+'.txt'}
 
 ###############################################setting slabs##################################################################    
 unitcell = model.UnitCell(5.038, 5.434, 7.3707, 90, 90, 90)
@@ -173,7 +174,7 @@ for i in range(DOMAIN_NUMBER):
     #note the grouping here is on a layer basis, ie atoms of same layer are groupped together
     #you may group in symmetry, then atoms of same layer are not independent.
     vars()['atm_gp_list_domain'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_sequence_layer(domain=[vars()['domain'+str(int(i+1))+'A'],vars()['domain'+str(int(i+1))+'B']], first_atom_id=['O1_1_0_D'+str(int(i+1))+'A','O1_7_0_D'+str(int(i+1))+'B'],\
-                            sym_file=sym_file, id_match_in_sym=vars()['id_match_in_sym_domain'+str(int(i+1))],layers_N=7,use_sym=False)
+                            sym_file=vars()['sym_file_domain'+str(int(i+1))], id_match_in_sym=vars()['id_match_in_sym_domain'+str(int(i+1))],layers_N=7,use_sym=False)
 
     vars(vars()['domain_class_'+str(int(i+1))])['atm_gp_list_domain'+str(int(i+1))]=vars()['atm_gp_list_domain'+str(int(i+1))]
     for j in range(len(vars()['sequence_gp_names_domain'+str(int(i+1))])):vars()[vars()['sequence_gp_names_domain'+str(int(i+1))][j]]=vars()['atm_gp_list_domain'+str(int(i+1))][j]
@@ -181,7 +182,7 @@ for i in range(DOMAIN_NUMBER):
     vars()['atm_gp_discrete_list_domain'+str(int(i+1))]=[]
     for j in range(len(vars()['ids_domain'+str(int(i+1))+'A'])):
         vars()['atm_gp_discrete_list_domain'+str(int(i+1))].append(vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A'],vars()['domain'+str(int(i+1))+'B']],\
-                                                                   atom_ids=[vars()['ids_domain'+str(int(i+1))+'A'][j],vars()['ids_domain'+str(int(i+1))+'B'][j]],sym_file=sym_file,id_match_in_sym=vars()['id_match_in_sym_domain'+str(int(i+1))],use_sym=True))
+                                                                   atom_ids=[vars()['ids_domain'+str(int(i+1))+'A'][j],vars()['ids_domain'+str(int(i+1))+'B'][j]],sym_file=vars()['sym_file_domain'+str(int(i+1))],id_match_in_sym=vars()['id_match_in_sym_domain'+str(int(i+1))],use_sym=True))
     vars(vars()['domain_class_'+str(int(i+1))])['atm_gp_discrete_list_domain'+str(int(i+1))]=vars()['atm_gp_discrete_list_domain'+str(int(i+1))]
     for j in range(len(vars()['discrete_gp_names_domain'+str(int(i+1))])):vars()[vars()['discrete_gp_names_domain'+str(int(i+1))][j]]=vars()['atm_gp_discrete_list_domain'+str(int(i+1))][j]
 
