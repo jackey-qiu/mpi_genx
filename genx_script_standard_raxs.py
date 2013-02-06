@@ -1,5 +1,5 @@
 #consider two domains (both half layer but different sorbate environment, one with 1pb OH and one with none)
-import models.sxrd_test5_sym_new_test_new66_2_2 as model
+import models.raxs as model
 from models.utils import UserVars
 import numpy as np
 from operator import mul
@@ -79,9 +79,9 @@ def create_sorbate_ids(el='Pb',N=2,tag='_D1A'):
 #file paths
 batch_path_head='/u1/uaf/cqiu/batchfile/'
 #batch_path_head='D:\\Github\\batchfile\\'
-Pb_NUMBER=[2,1]#domain1 has 1 pb and domain2 has 1 pb too
+Pb_NUMBER=[1,1]#domain1 has 1 pb and domain2 has 1 pb too
 Pb_COORS=[[[0.5,0.56955,2.0] for i in range(Pb_NUMBER[0])],[[0.5,0.56955,2.0] for i in range(Pb_NUMBER[1])]]#The initial lead postion (first one) for domain1 is [0.5,0.56955,2.0]
-O_NUMBER=[3,1]
+O_NUMBER=[2,2]
 O_COORS=[[[0.5,0.56955,2.0] for i in range(O_NUMBER[0])],[[0.5,0.56955,2.0] for i in range(O_NUMBER[1])]]
 DOMAIN=[1,2]#1 for half layer and 2 for full layer
 DOMAIN_NUMBER=len(DOMAIN)
@@ -205,14 +205,10 @@ for i in range(DOMAIN_NUMBER):
     vars(vars()['domain_class_'+str(int(i+1))])['atm_gp_discrete_list_domain'+str(int(i+1))]=vars()['atm_gp_discrete_list_domain'+str(int(i+1))]
     for j in range(len(vars()['discrete_gp_names_domain'+str(int(i+1))])):vars()[vars()['discrete_gp_names_domain'+str(int(i+1))][j]]=vars()['atm_gp_discrete_list_domain'+str(int(i+1))][j]
 
-#####################################do bond valence matching###################################
-for i in range(DOMAIN_NUMBER):
-    if DOMAIN[i]==1:
-        vars()['match_lib_'+str(int(i+1))+'A']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[0],rem_atom_ids=['Fe1_2_0_D'+str(int(i+1))+'A','Fe1_3_0_D'+str(int(i+1))+'A']),atm_list=vars()['atm_list_'+str(int(i+1))+'A'],search_range=2.3)
-        vars()['match_lib_'+str(int(i+1))+'B']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[1],rem_atom_ids=['Fe1_8_0_D'+str(int(i+1))+'B','Fe1_9_0_D'+str(int(i+1))+'B']),atm_list=vars()['atm_list_'+str(int(i+1))+'B'],search_range=2.3)
-    elif DOMAIN[i]==2:
-        vars()['match_lib_'+str(int(i+1))+'A']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[0],rem_atom_ids=None),atm_list=vars()['atm_list_'+str(int(i+1))+'A'],search_range=2.3)
-        vars()['match_lib_'+str(int(i+1))+'B']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[1],rem_atom_ids=None),atm_list=vars()['atm_list_'+str(int(i+1))+'B'],search_range=2.3)
+#####################################specify f1f2 here###################################
+res_el='Pb'
+f1f2_file='pb_new.f1f2'
+f1f2=np.loadtxt(batch_path_head+f1f2_file)
 
 VARS=vars()
 
@@ -227,10 +223,7 @@ def Sim(data,VARS=VARS):
         #extract the fitting par values in the associated attribute and then do the scaling(initiation+processing, actually update the fitting parameter values)
         VARS['domain_class_'+str(int(i+1))].init_sim_batch2(batch_path_head+VARS['sim_batch_file_domain'+str(int(i+1))])
         VARS['domain_class_'+str(int(i+1))].scale_opt_batch2b(batch_path_head+VARS['scale_operation_file_domain'+str(int(i+1))])
-        #create matching lib dynamically during fitting
-        vars()['match_lib_fitting_'+str(i+1)+'A'],vars()['match_lib_fitting_'+str(i+1)+'B']=deepcopy(VARS['match_lib_'+str(i+1)+'A']),deepcopy(VARS['match_lib_'+str(i+1)+'B'])
-        create_match_lib_during_fitting(domain_class=VARS['domain_class_'+str(int(i+1))],domain=VARS['domain'+str(int(i+1))+'A'],atm_list=VARS['atm_list_'+str(int(i+1))+'A'],pb_list=VARS['pb_list_domain'+str(int(i+1))+'a'],HO_list=VARS['HO_list_domain'+str(int(i+1))+'a'],match_lib=vars()['match_lib_fitting_'+str(int(i+1))+'A'])
-        #create_match_lib_during_fitting(domain_class=VARS['domain_class_'+str(int(i+1))],domain=VARS['domain'+str(int(i+1))+'B'],atm_list=VARS['atm_list_'+str(int(i+1))+'B'],pb_list=VARS['pb_list_domain'+str(int(i+1))+'b'],HO_list=VARS['HO_list_domain'+str(int(i+1))+'b'],match_lib=vars()['match_lib_fitting_'+str(int(i+1))+'B'])
+        
         #set up wt's
         vars()['wt_domain'+str(int(i+1))]=VARS['rgh_domain'+str(int(i+1))].wt
         total_wt=total_wt+vars()['wt_domain'+str(int(i+1))]
@@ -240,25 +233,15 @@ def Sim(data,VARS=VARS):
         domain['domain'+str(int(i+1))+'B']={'slab':VARS['domain'+str(int(i+1))+'B'],'wt':0.5*vars()['wt_domain'+str(int(i+1))]/total_wt}
     #set up sample
     sample = model.Sample(inst, bulk, domain, unitcell,coherence=False,surface_parms={'delta1':0.,'delta2':0.1391})
-    #extra tag for extra dataset consideration(10-->domain1, 11-->domain2, 12-->domain3, and so on, only consider one equivalent domain)
-    extra_tag=[10+i for i in range(DOMAIN_NUMBER)]
+
     for data_set in data:
         f=np.array([])
-        #for extra data set calculate the bond valence instead of structure factor
-        if (data_set.extra_data['h'][0] in extra_tag):
-            tag=int(data_set.extra_data['h'][0]-10+1)
-            bond_valence=domain_class_1.cal_bond_valence3(domain=VARS['domain'+str(tag)+'A'],match_lib=vars()['match_lib_fitting_'+str(tag)+'A'])
-            t=[]
-            for i in VARS['match_order_'+str(tag)+'A']:
-                t.append(bond_valence[i])
-            f=np.array(t)
-        else:
-            h = data_set.extra_data['h']
-            k = data_set.extra_data['k']
-            l = data_set.x
-            LB = data_set.extra_data['LB']
-            dL = data_set.extra_data['dL']
-            rough = (1-beta)/((1-beta)**2 + 4*beta*np.sin(np.pi*(l-LB)/dL)**2)**0.5
-            f = rough*sample.calc_f(h, k, l)
+        h = data_set.extra_data['h']
+        k = data_set.extra_data['k']
+        l = data_set.extra_data['l']
+        LB = data_set.extra_data['LB']
+        dL = data_set.extra_data['dL']
+        rough = (1-beta)/((1-beta)**2 + 4*beta*np.sin(np.pi*(l-LB)/dL)**2)**0.5
+        f = rough*sample.calc_f(h, k, l,f1f2,res_el)
         F.append(abs(f))
     return F

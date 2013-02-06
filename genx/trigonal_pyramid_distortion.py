@@ -100,8 +100,8 @@ class trigonal_pyramid_distortion():
         self.cal_edge_len()
         self.cal_apex_coor(switch=switch, phi=phi)
         
-    def print_file(self):
-        f=open('Y:\\codes\\my code\\modeling files\\surface modeling 1\\scripts\\tetrahedra_test.xyz','w')
+    def print_file(self,file):
+        f=open(file,'w')
         s = '%-5s   %7.5e   %7.5e   %7.5e\n' % ('Pb', self.apex[0],self.apex[1],self.apex[2])
         f.write(s)
         s = '%-5s   %7.5e   %7.5e   %7.5e\n' % ('O', self.p0[0],self.p0[1],self.p0[2])

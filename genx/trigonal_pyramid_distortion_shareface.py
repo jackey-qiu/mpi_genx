@@ -54,8 +54,8 @@ class trigonal_pyramid_distortion_shareface():
         ptOnCircle=ptOnCircle_cent_vt+cent_pt
         return ptOnCircle
         
-    def print_file(self):
-        f=open('/home/jackey/apps/genx/pyramid.xyz','w')
+    def print_file(self,file):
+        f=open(file,'w')
         s = '%-5s   %7.5e   %7.5e   %7.5e\n' % ('Pb', self.apex[0],self.apex[1],self.apex[2])
         f.write(s)
         s = '%-5s   %7.5e   %7.5e   %7.5e\n' % ('O', self.p0[0],self.p0[1],self.p0[2])
