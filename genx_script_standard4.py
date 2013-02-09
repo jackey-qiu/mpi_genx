@@ -81,6 +81,7 @@ def create_sorbate_ids(el='Pb',N=2,tag='_D1A'):
     id_list=[]
     [id_list.append(el+str(i+1)+tag) for i in range(N)]
     return id_list
+    
 ###############################################global vars##################################################
 #file paths
 batch_path_head='/u1/uaf/cqiu/batchfile/'
@@ -265,11 +266,42 @@ def Sim(data,VARS=VARS):
         #set up wt's
         vars()['wt_domain'+str(int(i+1))]=VARS['rgh_domain'+str(int(i+1))].wt
         total_wt=total_wt+vars()['wt_domain'+str(int(i+1))]
+        
+        #now update oxygens at surface with symmetry relation
+        if DOMAIN[i]==1:
+            VARS['domain_class_'+str(int(i+1))].update_oxygen_single_coordinated(VARS['domain'+str(int(i+1))+'A'],'O1_1_0_D'+str(int(i+1))+'A','Fe1_4_0_D'+str(int(i+1))+'A',[None,None],VARS['rgh_domain'+str(int(i+1))].scale_factor)
+            VARS['domain_class_'+str(int(i+1))].update_oxygen_single_coordinated(VARS['domain'+str(int(i+1))+'A'],'O1_2_0_D'+str(int(i+1))+'A','Fe1_6_0_D'+str(int(i+1))+'A',[None,'+x'],VARS['rgh_domain'+str(int(i+1))].scale_factor)
+            VARS['domain_class_'+str(int(i+1))].update_oxygen_p4_symmetry(VARS['domain'+str(int(i+1))+'A'],'O1_1_0_D'+str(int(i+1))+'A','Fe1_4_0_D'+str(int(i+1))+'A',[None,None],\
+                                ['O1_3_0_D'+str(int(i+1))+'A','O1_5_0_D'+str(int(i+1))+'A','O1_6_0_D'+str(int(i+1))+'A','O1_4_0_D'+str(int(i+1))+'A'],[VARS['rgh_domain'+str(int(i+1))].dx,VARS['rgh_domain'+str(int(i+1))].dy])
+            VARS['domain_class_'+str(int(i+1))].update_oxygen_p4_symmetry(VARS['domain'+str(int(i+1))+'A'],'O1_2_0_D'+str(int(i+1))+'A','Fe1_6_0_D'+str(int(i+1))+'A',[None,'+x'],\
+                                ['O1_3_0_D'+str(int(i+1))+'A','O1_5_0_D'+str(int(i+1))+'A','O1_6_0_D'+str(int(i+1))+'A','O1_4_0_D'+str(int(i+1))+'A'],[VARS['rgh_domain'+str(int(i+1))].dx,VARS['rgh_domain'+str(int(i+1))].dy])
+
+            VARS['gp_O1O7_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_1_0_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O2O8_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_2_0_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O3O9_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_3_0_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O4O10_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_4_0_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O5O11_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_5_0_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O6O12_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_6_0_D'+str(int(i+1))+'Adx1')())
+
+        elif DOMAIN[i]==2:
+            VARS['domain_class_'+str(int(i+1))].update_oxygen_single_coordinated(VARS['domain'+str(int(i+1))+'A'],'O1_11_t_D'+str(int(i+1))+'A','Fe1_2_0_D'+str(int(i+1))+'A',[None,None],VARS['rgh_domain'+str(int(i+1))].scale_factor)
+            VARS['domain_class_'+str(int(i+1))].update_oxygen_single_coordinated(VARS['domain'+str(int(i+1))+'A'],'O1_12_t_D'+str(int(i+1))+'A','Fe1_3_0_D'+str(int(i+1))+'A',[None,None],VARS['rgh_domain'+str(int(i+1))].scale_factor)
+            VARS['domain_class_'+str(int(i+1))].update_oxygen_p4_symmetry(VARS['domain'+str(int(i+1))+'A'],'O1_11_t_D'+str(int(i+1))+'A','Fe1_2_0_D'+str(int(i+1))+'A',[None,None],\
+                                ['O1_1_0_D'+str(int(i+1))+'A','O1_2_0_D'+str(int(i+1))+'A','O1_3_0_D'+str(int(i+1))+'A','O1_4_0_D'+str(int(i+1))+'A'],[VARS['rgh_domain'+str(int(i+1))].dx,VARS['rgh_domain'+str(int(i+1))].dy])
+            VARS['domain_class_'+str(int(i+1))].update_oxygen_p4_symmetry(VARS['domain'+str(int(i+1))+'A'],'O1_12_t_D'+str(int(i+1))+'A','Fe1_3_0'+str(int(i+1))+'A',[None,None],\
+                                ['O1_1_0_D'+str(int(i+1))+'A','O1_2_0_D'+str(int(i+1))+'A','O1_3_0_D'+str(int(i+1))+'A','O1_4_0_D'+str(int(i+1))+'A'],[VARS['rgh_domain'+str(int(i+1))].dx,VARS['rgh_domain'+str(int(i+1))].dy])
+            
+            VARS['gp_O11O5_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_11_t_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O12O6_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_12_t_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O1O7_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_1_0_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O2O8_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_2_0_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O3O9_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_3_0_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O4O10_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_4_0_D'+str(int(i+1))+'Adx1')())
+        
         #updata sorbates
         HO_index=0
         pb_coors_a=[]
         O_coors_a=[]
-        
         for j in range(Pb_NUMBER[i]):
             if len(Pb_ATTACH_ATOM[i][j])==1:
                 top_angle=VARS['rgh_domain'+str(int(i+1))].top_angle
@@ -295,6 +327,8 @@ def Sim(data,VARS=VARS):
                 pb_coors_a.append(sorbate_coors[0])
                 [O_coors_a.append(sorbate_coors[k]) for k in range(len(sorbate_coors))[1:]]
         add_atom(domain=VARS['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a+O_coors_a)-[0.,0.06955,0.5],ids=VARS['sorbate_ids_domain'+str(int(i+1))+'b'],els=VARS['sorbate_els_domain'+str(int(i+1))])
+        
+
     #set up multiple domains
     for i in range(DOMAIN_NUMBER):
         domain['domain'+str(int(i+1))+'A']={'slab':VARS['domain'+str(int(i+1))+'A'],'wt':0.5*vars()['wt_domain'+str(int(i+1))]/total_wt}
@@ -306,6 +340,7 @@ def Sim(data,VARS=VARS):
 
     #print items
     #print domain_creator3.extract_coor(domain1B,'Pb1_D1B')
+    print_data(N_sorbate=2,N_atm=40,domain=domain1A,z_shift=1,save_file='D://model.xyz')
     for data_set in data:
         f=np.array([])
         #for extra data set calculate the bond valence instead of structure factor

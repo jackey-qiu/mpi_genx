@@ -1392,7 +1392,7 @@ class domain_creator():
         new_l=ref_l*scale_factor
         scale_factor_new=new_l/f2(coors_O_current*basis,coors_Fe_current*basis)
         Fe_O_v_new=(coors_O_current-coors_Fe_current)*scale_factor_new
-        coors_O_new=Fe_O_v_new+coors_O_current
+        coors_O_new=Fe_O_v_new+coors_Fe_current
         dxdydz=coors_O_new-coors_O_original
         domain.dx1[index_O],domain.dy1[index_O],domain.dz1[index_O]=dxdydz[0],dxdydz[1],dxdydz[2]
         return coors_O_new
