@@ -1397,6 +1397,28 @@ class domain_creator():
         domain.dx1[index_O],domain.dy1[index_O],domain.dz1[index_O]=dxdydz[0],dxdydz[1],dxdydz[2]
         return coors_O_new
         
+    def update_oxygen_single_coordinated2(self,domain,O_id,Fe_id,offset=[],scale_factor=1.):
+        #fix the recursive issue during fitting
+        #to update the first layer oxygen which is singly coordinated
+        #the ref length is the original Fe-O bond length, which will be scaled by the scale factor
+        def _translate_offset_symbols(symbol):
+            if symbol=='-x':return np.array([-1.,0.,0.])
+            elif symbol=='+x':return np.array([1.,0.,0.])
+            elif symbol=='-y':return np.array([0.,-1.,0.])
+            elif symbol=='+y':return np.array([0.,1.,0.])
+            elif symbol==None:return np.array([0.,0.,0.])
+        index_O=np.where(domain.id==O_id)[0][0]
+        index_Fe=np.where(domain.id==Fe_id)[0][0]
+        basis=np.array([5.038,5.434,7.3707])
+        coors_O_original=np.array([domain.x[index_O],domain.y[index_O],domain.z[index_O]])+_translate_offset_symbols(offset[0])
+        coors_Fe_original=np.array([domain.x[index_Fe],domain.y[index_Fe],domain.z[index_Fe]])+_translate_offset_symbols(offset[1])
+        ref_l=f2(coors_O_original*basis,coors_Fe_original*basis)
+        Fe_O_v_new=(coors_O_original-coors_Fe_original)*scale_factor
+        coors_O_new=Fe_O_v_new+coors_Fe_original
+        dxdydz=coors_O_new-coors_O_original
+        domain.dx1[index_O],domain.dy1[index_O],domain.dz1[index_O]=dxdydz[0],dxdydz[1],dxdydz[2]
+        return coors_O_new
+        
     def update_oxygen_p4_symmetry(self,domain,O_id,Fe_id,offset=[],O_id_in_order=[],dxdy=[0,0]):
         #the second and third layer of oxygen are arranged in a p4 symmetry
         #Fe_id is the body center, O_Fe will define a z vector, the normal plane to z vector define the xy plane which is the rotation plane
@@ -1417,6 +1439,57 @@ class domain_creator():
         basis=np.array([5.038,5.434,7.3707])
         coors_O=(extract_coor(domain,O_id)+_translate_offset_symbols(offset[0]))*basis
         coors_Fe=(extract_coor(domain,Fe_id)+_translate_offset_symbols(offset[1]))*basis
+        p0,p1=coors_O,coors_Fe
+        n_v=p0-p1
+        origin=p1
+        a,b,c=n_v[0],n_v[1],n_v[2]
+        x0,y0,z0=p1[0],p1[1],p1[2]
+        ref_p=0
+        if c!=0.:
+            ref_p=np.array([1.,1.,(a*(x0-1.)+b*(y0-1.))/c+z0])
+        elif b!=0.:
+            ref_p=np.array([1.,(a*(x0-1.)+c*(z0-1.))/b+y0,1.])
+        else:
+            ref_p=np.array([(b*(y0-1.)+c*(z0-1.))/a+x0,1.,1.])
+        y_v=f3(np.zeros(3),(ref_p-origin))
+        z_v=f3(np.zeros(3),(p0-origin))
+        x_v=np.cross(y_v,z_v)
+        T=f1(x0_v,y0_v,z0_v,x_v,y_v,z_v)
+        dxdydz_ref=dxdy+[0]
+        M_p4=np.array([[0,-1,0],[1,0,0],[0,0,1]])
+        dxdydz_1=np.dot(M_p4,dxdydz_ref)
+        dxdydz_2=np.dot(M_p4,dxdydz_1)
+        dxdydz_3=np.dot(M_p4,dxdydz_2)
+        dxdydz_ref=np.dot(inv(T),dxdydz_ref)/basis
+        dxdydz_1=np.dot(inv(T),dxdydz_1)/basis
+        dxdydz_2=np.dot(inv(T),dxdydz_2)/basis
+        dxdydz_3=np.dot(inv(T),dxdydz_3)/basis
+        dxdydz_list=[dxdydz_ref,dxdydz_1,dxdydz_2,dxdydz_3]
+        for i in range(len(O_id_in_order)):
+            index=np.where(domain.id==O_id_in_order[i])[0][0]
+            domain.dx1[index],domain.dy1[index]=dxdydz_list[i][0],dxdydz_list[i][1]
+        return dxdydz_list
+    def update_oxygen_p4_symmetry2(self,domain,O_id,Fe_id,offset=[],O_id_in_order=[],dxdy=[0,0]):
+        #try to fix the recursive issue
+        #the second and third layer of oxygen are arranged in a p4 symmetry
+        #Fe_id is the body center, O_Fe will define a z vector, the normal plane to z vector define the xy plane which is the rotation plane
+        #only consider the inplane movement fraction in the original coordinate system, ie ignore the calculated dz
+        #dxdy is the dxdy shiftment in the rotation plane in unit of Angstrom for the ref atom (first in the O_id_in_order)
+        #the other associated shiftment will be calculated based on p4 symmetry configuration
+        #finally the dxdy will be converted to dxdy in the original coordinate system
+        #make sure the order of oxygen in the O_id_in_order is based on the rotation order
+        def _translate_offset_symbols(symbol):
+            if symbol=='-x':return np.array([-1.,0.,0.])
+            elif symbol=='+x':return np.array([1.,0.,0.])
+            elif symbol=='-y':return np.array([0.,-1.,0.])
+            elif symbol=='+y':return np.array([0.,1.,0.])
+            elif symbol==None:return np.array([0.,0.,0.])
+            
+        index_O=np.where(domain.id==O_id)[0][0]
+        index_Fe=np.where(domain.id==Fe_id)[0][0]
+        basis=np.array([5.038,5.434,7.3707])
+        coors_O=(np.array([domain.x[index_O],domain.y[index_O],domain.z[index_O]])+_translate_offset_symbols(offset[0]))*basis
+        coors_Fe=(np.array([domain.x[index_Fe],domain.y[index_Fe],domain.z[index_Fe]])+_translate_offset_symbols(offset[1]))*basis
         p0,p1=coors_O,coors_Fe
         n_v=p0-p1
         origin=p1

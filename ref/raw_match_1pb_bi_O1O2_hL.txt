@@ -7,7 +7,7 @@
 gp_O3O4_O9O10_D1.,gp_Fe4Fe6_Fe10Fe12_D1.,gp_O5O6_O11O12_D1.;setdz;True;[-0.1,0.1]
 #gp_O3O4_O9O10_D2.,gp_Fe4Fe6_Fe10Fe12_D2.,gp_O5O6_O11O12_D2.,gp_O7O8_O1O2_D2.,gp_Fe8Fe9_Fe2Fe3_D2.,gp_O9O10_O3O4_D2.,gp_Fe10Fe12_Fe4Fe6_D2.,gp_O11O12_O5O6_D2.;setdz;True;[-0.1,0.1]
 gp_Pb1_D1.set;oc,u;True;[0,1]_[0.4,5]
-gp_HO1_D1.set;oc,u;True;[0,1]_[0.4,10]
+gp_HO1_D1.set,gp_HO2_D1.set;oc,u;True;[0,1]_[0.4,10]
 #gp_HO1_D2.set,gp_HO2_D2.set,gp_HO3_D2.set,gp_HO4_D2.set;oc,u;True;[0,1]_[0.4,10]
 domain1A.;setFe1_2_0_D1Am,setFe1_3_0_D1Am;False;[0,0]_[0,0]
 domain1B.;setFe1_8_0_D1Bm,setFe1_9_0_D1Bm;False;[0,0]_[0,0]
