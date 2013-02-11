@@ -93,6 +93,7 @@ O_NUMBER=[1,2]
 #O_COORS=[[[0.5,0.56955,2.0] for i in range(O_NUMBER[0])],[[0.5,0.56955,2.0] for i in range(O_NUMBER[1])]]
 DOMAIN=[1,1]#1 for half layer and 2 for full layer
 DOMAIN_NUMBER=len(DOMAIN)
+USE_BV=False
 #sorbate ids
 for i in range(DOMAIN_NUMBER):
     #text files
@@ -190,9 +191,6 @@ for i in range(DOMAIN_NUMBER):
     vars(vars()['domain_class_'+str(int(i+1))])['domainA']=vars()['domain'+str(int(i+1))+'A']
     vars(vars()['domain_class_'+str(int(i+1))])['domainB']=vars()['domain'+str(int(i+1))+'B']
     #Adding sorbates to domainA and domainB
-    #add_atom(domain=vars()['domain'+str(int(i+1))+'A'],ref_coor=Pb_COORS[i]+O_COORS[i],ids=vars()['sorbate_ids_domain'+str(int(i+1))+'a'],els=vars()['sorbate_els_domain'+str(int(i+1))])
-    #add_atom(domain=vars()['domain'+str(int(i+1))+'B'],ref_coor=np.array(Pb_COORS[i]+O_COORS[i])-[0.,0.06955,0.5],ids=vars()['sorbate_ids_domain'+str(int(i+1))+'b'],els=vars()['sorbate_els_domain'+str(int(i+1))])
-    #Pb_ATTACH_ATOM=[(['O1_1_0']),(['O1_2_0'])]
     HO_index=0
     pb_coors_a=[]
     O_coors_a=[]
@@ -238,13 +236,14 @@ for i in range(DOMAIN_NUMBER):
     for j in range(len(vars()['discrete_gp_names_domain'+str(int(i+1))])):vars()[vars()['discrete_gp_names_domain'+str(int(i+1))][j]]=vars()['atm_gp_discrete_list_domain'+str(int(i+1))][j]
 
 #####################################do bond valence matching###################################
-for i in range(DOMAIN_NUMBER):
-    if DOMAIN[i]==1:
-        vars()['match_lib_'+str(int(i+1))+'A']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[0],rem_atom_ids=['Fe1_2_0_D'+str(int(i+1))+'A','Fe1_3_0_D'+str(int(i+1))+'A']),atm_list=vars()['atm_list_'+str(int(i+1))+'A'],search_range=2.3)
-        vars()['match_lib_'+str(int(i+1))+'B']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[1],rem_atom_ids=['Fe1_8_0_D'+str(int(i+1))+'B','Fe1_9_0_D'+str(int(i+1))+'B']),atm_list=vars()['atm_list_'+str(int(i+1))+'B'],search_range=2.3)
-    elif DOMAIN[i]==2:
-        vars()['match_lib_'+str(int(i+1))+'A']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[0],rem_atom_ids=None),atm_list=vars()['atm_list_'+str(int(i+1))+'A'],search_range=2.3)
-        vars()['match_lib_'+str(int(i+1))+'B']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[1],rem_atom_ids=None),atm_list=vars()['atm_list_'+str(int(i+1))+'B'],search_range=2.3)
+if USE_BV:
+    for i in range(DOMAIN_NUMBER):
+        if DOMAIN[i]==1:
+            vars()['match_lib_'+str(int(i+1))+'A']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[0],rem_atom_ids=['Fe1_2_0_D'+str(int(i+1))+'A','Fe1_3_0_D'+str(int(i+1))+'A']),atm_list=vars()['atm_list_'+str(int(i+1))+'A'],search_range=2.3)
+            vars()['match_lib_'+str(int(i+1))+'B']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[1],rem_atom_ids=['Fe1_8_0_D'+str(int(i+1))+'B','Fe1_9_0_D'+str(int(i+1))+'B']),atm_list=vars()['atm_list_'+str(int(i+1))+'B'],search_range=2.3)
+        elif DOMAIN[i]==2:
+            vars()['match_lib_'+str(int(i+1))+'A']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[0],rem_atom_ids=None),atm_list=vars()['atm_list_'+str(int(i+1))+'A'],search_range=2.3)
+            vars()['match_lib_'+str(int(i+1))+'B']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[1],rem_atom_ids=None),atm_list=vars()['atm_list_'+str(int(i+1))+'B'],search_range=2.3)
 
 VARS=vars()
 
@@ -260,9 +259,9 @@ def Sim(data,VARS=VARS):
         VARS['domain_class_'+str(int(i+1))].init_sim_batch2(batch_path_head+VARS['sim_batch_file_domain'+str(int(i+1))])
         VARS['domain_class_'+str(int(i+1))].scale_opt_batch2b(batch_path_head+VARS['scale_operation_file_domain'+str(int(i+1))])
         #create matching lib dynamically during fitting
-        vars()['match_lib_fitting_'+str(i+1)+'A'],vars()['match_lib_fitting_'+str(i+1)+'B']=deepcopy(VARS['match_lib_'+str(i+1)+'A']),deepcopy(VARS['match_lib_'+str(i+1)+'B'])
-        create_match_lib_during_fitting(domain_class=VARS['domain_class_'+str(int(i+1))],domain=VARS['domain'+str(int(i+1))+'A'],atm_list=VARS['atm_list_'+str(int(i+1))+'A'],pb_list=VARS['pb_list_domain'+str(int(i+1))+'a'],HO_list=VARS['HO_list_domain'+str(int(i+1))+'a'],match_lib=vars()['match_lib_fitting_'+str(int(i+1))+'A'])
-        #create_match_lib_during_fitting(domain_class=VARS['domain_class_'+str(int(i+1))],domain=VARS['domain'+str(int(i+1))+'B'],atm_list=VARS['atm_list_'+str(int(i+1))+'B'],pb_list=VARS['pb_list_domain'+str(int(i+1))+'b'],HO_list=VARS['HO_list_domain'+str(int(i+1))+'b'],match_lib=vars()['match_lib_fitting_'+str(int(i+1))+'B'])
+        if USE_BV:
+            vars()['match_lib_fitting_'+str(i+1)+'A'],vars()['match_lib_fitting_'+str(i+1)+'B']=deepcopy(VARS['match_lib_'+str(i+1)+'A']),deepcopy(VARS['match_lib_'+str(i+1)+'B'])
+            create_match_lib_during_fitting(domain_class=VARS['domain_class_'+str(int(i+1))],domain=VARS['domain'+str(int(i+1))+'A'],atm_list=VARS['atm_list_'+str(int(i+1))+'A'],pb_list=VARS['pb_list_domain'+str(int(i+1))+'a'],HO_list=VARS['HO_list_domain'+str(int(i+1))+'a'],match_lib=vars()['match_lib_fitting_'+str(int(i+1))+'A'])
         #set up wt's
         vars()['wt_domain'+str(int(i+1))]=VARS['rgh_domain'+str(int(i+1))].wt
         total_wt=total_wt+vars()['wt_domain'+str(int(i+1))]
