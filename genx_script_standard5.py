@@ -273,30 +273,30 @@ def Sim(data,VARS=VARS):
         
         #now update oxygens at surface with symmetry relation
         if DOMAIN[i]==1:
-            VARS['domain_class_'+str(int(i+1))].update_oxygen_single_coordinated2(VARS['domain'+str(int(i+1))+'A'],'O1_1_0_D'+str(int(i+1))+'A','Fe1_4_0_D'+str(int(i+1))+'A',[None,None],VARS['rgh_domain'+str(int(i+1))].scale_factor)
-            VARS['domain_class_'+str(int(i+1))].update_oxygen_single_coordinated2(VARS['domain'+str(int(i+1))+'A'],'O1_2_0_D'+str(int(i+1))+'A','Fe1_6_0_D'+str(int(i+1))+'A',[None,'+x'],VARS['rgh_domain'+str(int(i+1))].scale_factor)
-            VARS['domain_class_'+str(int(i+1))].update_oxygen_p4_symmetry2(VARS['domain'+str(int(i+1))+'A'],'O1_1_0_D'+str(int(i+1))+'A','Fe1_4_0_D'+str(int(i+1))+'A',[None,None],\
-                                ['O1_3_0_D'+str(int(i+1))+'A','O1_5_0_D'+str(int(i+1))+'A','O1_6_0_D'+str(int(i+1))+'A','O1_4_0_D'+str(int(i+1))+'A'],[VARS['rgh_domain'+str(int(i+1))].dx,VARS['rgh_domain'+str(int(i+1))].dy])
+            VARS['domain_class_'+str(int(i+1))].update_oxygen_p4_symmetry3(VARS['domain'+str(int(i+1))+'A'],'Fe1_4_0_D'+str(int(i+1))+'A',\
+                                ['O1_3_0_D'+str(int(i+1))+'A','O1_5_0_D'+str(int(i+1))+'A','O1_6_0_D'+str(int(i+1))+'A','O1_4_0_D'+str(int(i+1))+'A'],[None,None,'+y','+y'],VARS['rgh_domain'+str(int(i+1))].theta,VARS['rgh_domain'+str(int(i+1))].scale_factor)
 
-            VARS['gp_O1O7_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_1_0_D'+str(int(i+1))+'Adx1')())
-            VARS['gp_O2O8_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_2_0_D'+str(int(i+1))+'Adx1')())
             VARS['gp_O3O9_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_3_0_D'+str(int(i+1))+'Adx1')())
             VARS['gp_O4O10_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_4_0_D'+str(int(i+1))+'Adx1')())
             VARS['gp_O5O11_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_5_0_D'+str(int(i+1))+'Adx1')())
             VARS['gp_O6O12_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_6_0_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O3O9_D'+str(int(i+1))].setdy(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_3_0_D'+str(int(i+1))+'Ady1')())
+            VARS['gp_O4O10_D'+str(int(i+1))].setdy(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_4_0_D'+str(int(i+1))+'Ady1')())
+            VARS['gp_O5O11_D'+str(int(i+1))].setdy(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_5_0_D'+str(int(i+1))+'Ady1')())
+            VARS['gp_O6O12_D'+str(int(i+1))].setdy(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_6_0_D'+str(int(i+1))+'Ady1')())
 
         elif DOMAIN[i]==2:
-            VARS['domain_class_'+str(int(i+1))].update_oxygen_single_coordinated2(VARS['domain'+str(int(i+1))+'A'],'O1_11_t_D'+str(int(i+1))+'A','Fe1_2_0_D'+str(int(i+1))+'A',[None,None],VARS['rgh_domain'+str(int(i+1))].scale_factor)
-            VARS['domain_class_'+str(int(i+1))].update_oxygen_single_coordinated2(VARS['domain'+str(int(i+1))+'A'],'O1_12_t_D'+str(int(i+1))+'A','Fe1_3_0_D'+str(int(i+1))+'A',[None,None],VARS['rgh_domain'+str(int(i+1))].scale_factor)
-            VARS['domain_class_'+str(int(i+1))].update_oxygen_p4_symmetry2(VARS['domain'+str(int(i+1))+'A'],'O1_11_t_D'+str(int(i+1))+'A','Fe1_2_0_D'+str(int(i+1))+'A',[None,None],\
-                                ['O1_1_0_D'+str(int(i+1))+'A','O1_2_0_D'+str(int(i+1))+'A','O1_3_0_D'+str(int(i+1))+'A','O1_4_0_D'+str(int(i+1))+'A'],[VARS['rgh_domain'+str(int(i+1))].dx,VARS['rgh_domain'+str(int(i+1))].dy])
+            VARS['domain_class_'+str(int(i+1))].update_oxygen_p4_symmetry3(VARS['domain'+str(int(i+1))+'A'],'Fe1_2_0_D'+str(int(i+1))+'A',\
+                                ['O1_1_0_D'+str(int(i+1))+'A','O1_2_0_D'+str(int(i+1))+'A','O1_3_0_D'+str(int(i+1))+'A','O1_4_0_D'+str(int(i+1))+'A'],['-y',None,None,None],VARS['rgh_domain'+str(int(i+1))].theta,VARS['rgh_domain'+str(int(i+1))].scale_factor)
             
-            VARS['gp_O11O5_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_11_t_D'+str(int(i+1))+'Adx1')())
-            VARS['gp_O12O6_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_12_t_D'+str(int(i+1))+'Adx1')())
             VARS['gp_O1O7_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_1_0_D'+str(int(i+1))+'Adx1')())
             VARS['gp_O2O8_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_2_0_D'+str(int(i+1))+'Adx1')())
             VARS['gp_O3O9_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_3_0_D'+str(int(i+1))+'Adx1')())
             VARS['gp_O4O10_D'+str(int(i+1))].setdx(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_4_0_D'+str(int(i+1))+'Adx1')())
+            VARS['gp_O1O7_D'+str(int(i+1))].setdy(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_1_0_D'+str(int(i+1))+'Ady1')())
+            VARS['gp_O2O8_D'+str(int(i+1))].setdy(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_2_0_D'+str(int(i+1))+'Ady1')())
+            VARS['gp_O3O9_D'+str(int(i+1))].setdy(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_3_0_D'+str(int(i+1))+'Ady1')())
+            VARS['gp_O4O10_D'+str(int(i+1))].setdy(getattr(VARS['domain'+str(int(i+1))+'A'],'get'+'O1_4_0_D'+str(int(i+1))+'Ady1')())
         
         #updata sorbates
         HO_index=0

@@ -1520,6 +1520,28 @@ class domain_creator():
             index=np.where(domain.id==O_id_in_order[i])[0][0]
             domain.dx1[index],domain.dy1[index]=dxdydz_list[i][0],dxdydz_list[i][1]
         return dxdydz_list
+      
+    def update_oxygen_p4_symmetry3(self,domain,Fe_id,O_id_in_order=[],offset=[],theta=0,scale_factor=1):
+        #a different algorithem is used in this version
+        #the O atoms will be projected on xy plane, and Fe will be set as the center (origin) of the retangular (maybe not retangular)
+        #Then apply rotation of theta for each oxygen and scale the final rotated vector by scale_factor
+        #The difference bw the rotated and initial vector is the assciated dxdy
+        def _translate_offset_symbols(symbol):
+            if symbol=='-x':return np.array([-1.,0.,0.])
+            elif symbol=='+x':return np.array([1.,0.,0.])
+            elif symbol=='-y':return np.array([0.,-1.,0.])
+            elif symbol=='+y':return np.array([0.,1.,0.])
+            elif symbol==None:return np.array([0.,0.,0.])
+            
+        index_Fe=np.where(domain.id==Fe_id)[0][0]
+        index_Os=[np.where(domain.id==O_id_in_order[i])[0][0] for i in range(len(O_id_in_order))]
+        basis=np.array([5.038,5.434,7.3707])
+        coors_Fe=(np.array([domain.x[index_Fe],domain.y[index_Fe],domain.z[index_Fe]]))*basis
+        coors_Os=[(np.array([domain.x[index_Os[i]],domain.y[index_Os[i]],domain.z[index_Os[i]]])+_translate_offset_symbols(offset[i]))*basis for i in range(len(offset))]
+        M=np.array([[np.cos(theta),-np.sin(theta)],[np.sin(theta),np.cos(theta)]])
+        for i in range(len(O_id_in_order)):
+            dxdy=(np.dot(M,(coors_Os[i]-coors_Fe)[:2])*scale_factor+coors_Fe[:2]-coors_Os[i][:2])/basis[:2]
+            domain.dx1[index_Os[i]],domain.dy1[index_Os[i]]=dxdy[0],dxdy[1]
         
     def grouping_discrete_layer_batch(self,filename):
         gp_list=[]
