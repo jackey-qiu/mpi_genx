@@ -214,7 +214,7 @@ for i in range(DOMAIN_NUMBER):
             sorbate_coors=vars()['domain_class_'+str(int(i+1))].adding_sorbate_pyramid_bidentate(domain=vars()['domain'+str(int(i+1))+'A'],top_angle=1.,phi=0.,attach_atm_ids=ids,offset=offset,pb_id=pb_id,O_id=O_id)
             pb_coors_a.append(sorbate_coors[0])
             [O_coors_a.append(sorbate_coors[k]) for k in range(len(sorbate_coors))[1:]]
-    add_atom(domain=vars()['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a+O_coors_a)-[0.,0.06955,0.5],ids=vars()['sorbate_ids_domain'+str(int(i+1))+'b'],els=vars()['sorbate_els_domain'+str(int(i+1))])
+    add_atom(domain=vars()['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a+O_coors_a)*[-1.,1.,1.]-[-1.,0.06955,0.5],ids=vars()['sorbate_ids_domain'+str(int(i+1))+'b'],els=vars()['sorbate_els_domain'+str(int(i+1))])
     #set variables
     vars()['domain_class_'+str(int(i+1))].set_new_vars(head_list=['u_o_n','u_Fe_n','oc_n'],N_list=[4,3,7])
     vars()['domain_class_'+str(int(i+1))].set_discrete_new_vars_batch(batch_path_head+vars()['discrete_vars_file_domain'+str(int(i+1))])
@@ -294,7 +294,7 @@ def Sim(data,VARS=VARS):
                 sorbate_coors=VARS['domain_class_'+str(int(i+1))].adding_sorbate_pyramid_bidentate(domain=VARS['domain'+str(int(i+1))+'A'],top_angle=top_angle,phi=phi,attach_atm_ids=ids,offset=offset,pb_id=pb_id,O_id=O_id)
                 pb_coors_a.append(sorbate_coors[0])
                 [O_coors_a.append(sorbate_coors[k]) for k in range(len(sorbate_coors))[1:]]
-        add_atom(domain=VARS['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a+O_coors_a)-[0.,0.06955,0.5],ids=VARS['sorbate_ids_domain'+str(int(i+1))+'b'],els=VARS['sorbate_els_domain'+str(int(i+1))])
+        add_atom(domain=VARS['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a+O_coors_a)*[-1.,1.,1.]-[-1.,0.06955,0.5],ids=VARS['sorbate_ids_domain'+str(int(i+1))+'b'],els=VARS['sorbate_els_domain'+str(int(i+1))])
     #set up multiple domains
     for i in range(DOMAIN_NUMBER):
         domain['domain'+str(int(i+1))+'A']={'slab':VARS['domain'+str(int(i+1))+'A'],'wt':0.5*vars()['wt_domain'+str(int(i+1))]/total_wt}

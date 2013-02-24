@@ -183,7 +183,7 @@ for i in range(DOMAIN_NUMBER):
     vars(vars()['domain_class_'+str(int(i+1))])['domainB']=vars()['domain'+str(int(i+1))+'B']
     #Adding sorbates to domainA and domainB
     add_atom(domain=vars()['domain'+str(int(i+1))+'A'],ref_coor=Pb_COORS[i]+O_COORS[i],ids=vars()['sorbate_ids_domain'+str(int(i+1))+'a'],els=vars()['sorbate_els_domain'+str(int(i+1))])
-    add_atom(domain=vars()['domain'+str(int(i+1))+'B'],ref_coor=np.array(Pb_COORS[i]+O_COORS[i])-[0.,0.06955,0.5],ids=vars()['sorbate_ids_domain'+str(int(i+1))+'b'],els=vars()['sorbate_els_domain'+str(int(i+1))])
+    add_atom(domain=vars()['domain'+str(int(i+1))+'B'],ref_coor=np.array(Pb_COORS[i]+O_COORS[i])*[-1.,1.,1.]-[-1.,0.06955,0.5],ids=vars()['sorbate_ids_domain'+str(int(i+1))+'b'],els=vars()['sorbate_els_domain'+str(int(i+1))])
     #set variables
     vars()['domain_class_'+str(int(i+1))].set_new_vars(head_list=['u_o_n','u_Fe_n','oc_n'],N_list=[4,3,7])
     vars()['domain_class_'+str(int(i+1))].set_discrete_new_vars_batch(batch_path_head+vars()['discrete_vars_file_domain'+str(int(i+1))])
