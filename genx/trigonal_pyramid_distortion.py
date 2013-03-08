@@ -73,10 +73,10 @@ class trigonal_pyramid_distortion():
         self.apex = np.dot(inv(T),apex_new)+origin
         self.cal_p2(p0,p1)
         
-    def cal_p2(self,p0,p1):
+    def cal_p2(self,p0,p1,mirror=False):
         #basic idea:set z vector rooting from EC to cp, x vector from EC to A (normalized to length of 1)
         #use angle of theta (pi/2 here) and phi (the angle A_EC_P2, can be calculated) to sove P2 finally 
-    
+        #if consider mirror then p2 will be on the other side
         side_center=(p0+self.cross_pt)/2.
         origin=side_center
         z_v=f3(np.zeros(3),(self.cross_pt-side_center))
@@ -87,6 +87,7 @@ class trigonal_pyramid_distortion():
         dst_face_ct_edge_ct=f2(p0,self.cross_pt)/2*np.tan(np.pi/6.)
         dst_p2_edge_ct=f2(p0,self.cross_pt)/2*np.tan(np.pi/3.)
         phi=np.arccos(dst_face_ct_edge_ct/f2(self.apex,(p0+self.cross_pt)/2.))
+        if mirror:phi=-phi
         r=dst_p2_edge_ct
         p2_new=np.array([r*np.cos(phi)*np.sin(theta),r*np.sin(phi)*np.sin(theta),r*np.cos(theta)])
         _p2=np.dot(inv(T),p2_new)+origin
@@ -95,10 +96,10 @@ class trigonal_pyramid_distortion():
         p2_v=_p2_v*scale
         self.p2=p2_v+self.apex
         
-    def all_in_all(self,switch=False,phi=0.):
+    def all_in_all(self,switch=False,phi=0.,mirror=False):
         self.cal_theta()
         self.cal_edge_len()
-        self.cal_apex_coor(switch=switch, phi=phi)
+        self.cal_apex_coor(switch=switch, phi=phi,mirror=mirror)
         
     def print_file(self,file):
         f=open(file,'w')

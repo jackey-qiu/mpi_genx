@@ -617,8 +617,9 @@ class domain_creator():
         _add_sorbate(domain=domain,id_sorbate=O_id[1],el='O',sorbate_v=pyramid.p2/basis)
         return [pyramid.apex/basis,pyramid.p1/basis,pyramid.p2/basis]
         
-    def adding_sorbate_pyramid_bidentate(self,domain,top_angle=1.,phi=0.,attach_atm_ids=['id1','id2'],offset=[None,None],pb_id='pb_id',O_id=['id1']):
+    def adding_sorbate_pyramid_bidentate(self,domain,top_angle=1.,phi=0.,attach_atm_ids=['id1','id2'],offset=[None,None],pb_id='pb_id',O_id=['id1'],mirror=False):
         #The added sorbates (including Pb and one Os) will form a trigonal pyramid configuration with the attached ones
+        #note phi is from 0 to 2pi and top_angel is from 0 to 2pi/3
         p_O1_index=np.where(domain.id==attach_atm_ids[0])
         p_O2_index=np.where(domain.id==attach_atm_ids[1])
         basis=np.array([5.038,5.434,7.3707])
@@ -638,7 +639,7 @@ class domain_creator():
         p_O1=pt_ct(domain,p_O1_index,offset[0])*basis
         p_O2=pt_ct(domain,p_O2_index,offset[1])*basis
         pyramid_distortion=trigonal_pyramid_distortion.trigonal_pyramid_distortion(p0=p_O1,p1=p_O2,top_angle=top_angle,len_offset=[0,0])#len_offset is 0 to make sure it is a regular polyhedral
-        pyramid_distortion.all_in_all(switch=False,phi=phi)
+        pyramid_distortion.all_in_all(switch=False,phi=phi,mirror=mirror)
         
         def _add_sorbate(domain=None,id_sorbate=None,el='Pb',sorbate_v=[]):
             sorbate_index=None
@@ -1060,15 +1061,32 @@ class domain_creator():
             domain.x[O_index1],domain.y[O_index1],domain.z[O_index1]=point1[0],point1[1],point1[2]
             domain.x[O_index2],domain.y[O_index2],domain.z[O_index2]=point2[0],point2[1],point2[2]
             
-    def add_oxygen_pair(self,domain,O_id,ref_point,r,alpha):
+    def add_oxygen_pair(self,domain,O_ids,ref_point,r,alpha):
         #add single oxygen pair to a ref_point,which does not stand for an atom, the xyz for this point will be set as
-        #three fitting parameters.O_id will be attached at the end of each id for the oxygen
+        #three fitting parameters.
+        ref_pt=[5.038,5.434,7.3707]*np.array(ref_point)
         x_shift=r*np.cos(alpha)
         y_shift=r*np.sin(alpha)
-        point1=ref_point[0]-x_shift,ref_point[1]-y_shift,ref_point[2]
-        point2=ref_point[0]+x_shift,ref_point[1]+y_shift,ref_point[2]
-        domain.add_atom(id='Os_1'+str(O_id),element='O',x=point1[0],y=point1[1],z=point1[2],u=1.)
-        domain.add_atom(id='Os_2'+str(O_id),element='O',x=point2[0],y=point2[1],z=point2[2],u=1.)
+        index_1,index_2=0,0
+        point1,point2=[],[]
+        try:
+            index_1=np.where(domain.id==O_ids[0])[0][0]
+            index_2=np.where(domain.id==O_ids[1])[0][0]
+        except:   
+            point1=np.array([ref_pt[0]-x_shift,ref_pt[1]-y_shift,ref_pt[2]])
+            point2=np.array([ref_pt[0]+x_shift,ref_pt[1]+y_shift,ref_pt[2]])
+            domain.add_atom(id=O_ids[0],element='O',x=point1[0],y=point1[1],z=point1[2])
+            domain.add_atom(id=O_ids[1],element='O',x=point2[0],y=point2[1],z=point2[2])
+        if not((index_1==0)&(index_2==0)):
+            point1=np.array([ref_pt[0]-x_shift,ref_pt[1]-y_shift,ref_pt[2]])
+            point2=np.array([ref_pt[0]+x_shift,ref_pt[1]+y_shift,ref_pt[2]])
+            domain.x[index_1]=point2[0]
+            domain.y[index_1]=point2[1]
+            domain.z[index_1]=point2[2]
+            domain.x[index_2]=point1[0]
+            domain.y[index_2]=point1[1]
+            domain.z[index_2]=point1[2]
+        return np.append([point1],[point2],axis=0)
 
     def updata_oxygen_pair(self,domain,ids,ref_point,r,alpha):
         #updata the position information of oxygen pair, to be dropped inside sim func
