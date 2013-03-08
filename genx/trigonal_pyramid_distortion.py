@@ -40,7 +40,7 @@ class trigonal_pyramid_distortion():
         right_side=f2(self.p0,self.p1)*np.sin(self.sharp_angle)
         self.edge_len=right_side/np.sin(np.pi-self.top_angle)
         
-    def cal_apex_coor(self,switch=False,phi=0.):
+    def cal_apex_coor(self,switch=False,phi=0.,mirror=False):
     #basis idea: set a new coordinate frame with p0p1 as the z vector (start from p1)
     #set a arbitrary y vector on the normal plane, and cross product to solve the x vector
     #then use phi and theta (sharp angle) to sove the cross_point(CP on file) and apex (A on file)
@@ -71,7 +71,7 @@ class trigonal_pyramid_distortion():
         apex_new = np.array([r2*np.cos(phi)*np.sin(theta),r2*np.sin(phi)*np.sin(theta),r2*np.cos(theta)])
         self.cross_pt = np.dot(inv(T),cross_pt_new)+origin
         self.apex = np.dot(inv(T),apex_new)+origin
-        self.cal_p2(p0,p1)
+        self.cal_p2(p0,p1,mirror)
         
     def cal_p2(self,p0,p1,mirror=False):
         #basic idea:set z vector rooting from EC to cp, x vector from EC to A (normalized to length of 1)
