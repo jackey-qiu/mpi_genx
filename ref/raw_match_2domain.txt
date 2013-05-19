@@ -1,0 +1,18 @@
+##sorbates only pb being considered
+gp_Pb1_D1.set,gp_Pb1_D2.set;oc,u;True;[0,1]_[0.4,5]
+gp_Pb1_D1.,gp_Pb1_D2.;setdx,setdy,setdz;True;[-0.2,0.2]_[-0.2,0.2]_[-0.2,0.2]
+##out of plane shiftment (consider top five layers, note 4 layers for half layer model due to the missed iron layer)
+gp_O1O2_O7O8_D1.,gp_O3O4_O9O10_D1.,gp_Fe4Fe6_Fe10Fe12_D1.,gp_O5O6_O11O12_D1.;setdz;False;[-0.1,0.1]
+gp_O11O12_O5O6_D2.,gp_O1O2_O7O8_D2.,gp_O3O4_O9O10_D2.,gp_Fe4Fe6_Fe10Fe12_D2.,gp_O5O6_O11O12_D2.;setdz;False;[-0.1,0.1]
+##missed iron layer for the half layer model
+domain1A.;setFe1_2_0_D1Am,setFe1_3_0_D1Am;False;[0,0]_[0,0]
+domain1B.;setFe1_8_0_D1Bm,setFe1_9_0_D1Bm;False;[0,0]_[0,0]
+##roughness and scale factor
+inst.;set_inten;True;[1.,4.]
+rgh.;setBeta;True;[0,0.5]
+##set the wt of two domains(freeze wt of domain2)
+rgh_domain1.;setWt;True;[2,4]
+rgh_domain2.;setWt;False;[0.5,1.5]
+##set oc and u for sf atms
+#rgh_domain1.set,rgh_domain2.set;Oc_n1,Oc_n2,Oc_n3,Oc_n4,Oc_n5,Oc_n6,Oc_n7;True;[0.8,1]_[0.8,1]_[0.8,1]_[0.8,1]_[0.8,1]_[0.8,1]_[0.8,1]
+#rgh_domain1.set,rgh_domain2.set;U_Fe_n1,U_Fe_n2,U_Fe_n3,U_o_n1,U_o_n2,U_o_n3,U_o_n4;True;[1.,2.]_[1.,2.]_[1.,2.]_[1.,2.]_[1.,2.]_[1.,2.]_[1.,2.]

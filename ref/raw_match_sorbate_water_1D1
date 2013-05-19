@@ -1,0 +1,20 @@
+#set scale factor for structure factor and beta for roughness
+inst.;set_inten;True;[1.,4.]
+rgh.;setBeta;True;[0,0.5]
+#set second iron layer to be vacancy
+domain1A.;setFe1_2_0_D1Am,setFe1_3_0_D1Am;False;[0,0]_[0,0]
+domain1B.;setFe1_8_0_D1Bm,setFe1_9_0_D1Bm;False;[0,0]_[0,0]
+#set pars for water layers
+rgh_domain1.set;R_water_pair_1,Alpha_water_pair_1,Ref_pt_water_pair_x_1,Ref_pt_water_pair_y_1,Ref_pt_water_pair_z_1;True;[1,2]_[0,3.14]_[0,1]_[0,1]_[2.2,3]
+gp_Os1_D1.,gp_Os2_D1.;setoc,setu;True;[0,1]_[1,10]
+#set pars for sorbates
+rgh_domain1.set;Top_angle_1,Phi_1,R_1;True;[0.87,1.74]_[0,6.28]_[2.1,2.5]
+gp_Pb1_D1.set;oc,u;True;[0,0.5]_[0.4,2]
+gp_HO1_D1.set;oc,u;True;[0,1]_[0.4,2]
+#inplance movement of top two oxygen layers
+rgh_domain1.set;Scale_factor,Theta;True;[0.8,1.2]_[-0.5,0.5]
+#out of plane movement of top four atom layers
+gp_O1O2_O7O8_D1.,gp_O3O4_O9O10_D1.,gp_Fe4Fe6_Fe10Fe12_D1.,gp_O5O6_O11O12_D1.;setdz;True;[-0.1,0.1]
+#scale oc and u for top four atom layers
+rgh_domain1.set;Oc_n3,Oc_n4,Oc_n5,Oc_n7;True;[0.8,1]_[0.8,1]_[0.8,1]_[0.8,1]
+rgh_domain1.set;U_Fe_n2,U_o_n2,U_o_n3,U_o_n4;True;[1.,2.]_[1.,2.]_[1.,2.]_[1.,2.]

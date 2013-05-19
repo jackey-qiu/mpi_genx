@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import models.sxrd_test5_sym_new_test_new66_2 as model
+import models.sxrd_test5_sym_new_test_new66_2_2 as model
 from models.utils import UserVars
 import numpy as np
 from operator import mul
@@ -7,6 +7,7 @@ from numpy.linalg import inv
 import sys
 sys.path.append('D:\\Programming codes\\geometry codes\\polyhedra-geometry')
 import hexahedra,hexahedra_distortion,tetrahedra,octahedra,tetrahedra_edge_distortion,trigonal_pyramid_distortion,trigonal_pyramid_distortion_shareface,trigonal_pyramid_distortion2,trigonal_pyramid_distortion3,trigonal_pyramid_distortion4
+import trigonal_pyramid_known_apex
 
 x0_v,y0_v,z0_v=np.array([1.,0.,0.]),np.array([0.,1.,0.]),np.array([0.,0.,1.])
 
@@ -31,6 +32,12 @@ def extract_coor(domain,id):
     z=domain.z[index]+domain.dz1[index]+domain.dz2[index]+domain.dz3[index]
     return np.array([x,y,z])
 
+def extract_component(domain,id,name_list):
+    index=np.where(domain.id==id)[0][0]
+    temp=[vars(domain)[name][index] for name in name_list]
+    for i in range(len(name_list)):
+        print name_list[i]+'=',temp[i]
+        
 #set coor to atom with id in domain
 def set_coor(domain,id,coor):
     index=np.where(domain.id==id)[0][0]
@@ -56,18 +63,19 @@ grid_match_lib[8]={2:'-y',3:'-y',4:None,5:None,6:None,7:None,1:'-y',9:None}
 grid_match_lib[9]={2:'-y',3:'-y',4:None,5:None,6:'+x',7:'+x',8:None,1:'+x-y'}
 
 class domain_creator():
-    def __init__(self,ref_domain,id_list,terminated_layer=0,new_var_module=None):
+    def __init__(self,ref_domain,id_list,terminated_layer=0,domain_tag='_D1',new_var_module=None):
         #id_list is a list of id in the order of ref_domain,terminated_layer is the index number of layer to be considered
         #for termination,domain_N is a index number for this specific domain, new_var_module is a UserVars module to be used in
         #function of set_new_vars
         self.ref_domain=ref_domain
         self.id_list=id_list
         self.terminated_layer=terminated_layer
+        self.domain_tag=domain_tag
         self.share_face,self.share_edge,self.share_corner=(False,False,False)
         #self.anchor_list=[]
         self.polyhedra_list=[]
         self.new_var_module=new_var_module
-        self.domain_A,self.domain_B=self.create_equivalent_domains()
+        self.domain_A,self.domain_B=self.create_equivalent_domains_2()
     
     def build_super_cell(self,ref_domain,rem_atom_ids=None):
     #build a super cell based on the ref_domain, the super cell is actually two domains stacking together in x direction
@@ -108,6 +116,20 @@ class domain_creator():
             #print id in new_domain_B.id
             new_domain_B.del_atom(id)
         return new_domain_A,new_domain_B
+
+    def create_equivalent_domains_2(self):
+        new_domain_A=self.ref_domain.copy()
+        new_domain_B=self.ref_domain.copy()
+        for id in self.id_list[:self.terminated_layer*2]:
+            if id!=[]:
+                new_domain_A.del_atom(id)
+        #number 5 here is crystal specific, here is the case for hematite
+        for id in self.id_list[:(self.terminated_layer+5)*2]:
+            #print id in new_domain_B.id
+            new_domain_B.del_atom(id)
+        new_domain_A.id=map(lambda x:x+self.domain_tag+'A',new_domain_A.id)
+        new_domain_B.id=map(lambda x:x+self.domain_tag+'B',new_domain_B.id)
+        return new_domain_A.copy(),new_domain_B.copy()
         
     def add_sorbate_polyhedra(self,domain,r=0.1,theta=[0.,0.],phi=[np.pi/2,np.pi/2],polyhedra_flag='tetrahedra',\
             extra_flag='1_1+0_1',extra_flag2='type1',attach_atm_id=[['id1','id2'],['id3','id4']],offset=[[None,None],[None,None]],el='Pb',id_attach=[],use_ref=False):
@@ -556,7 +578,84 @@ class domain_creator():
         _add_sorbate(domain=domain,id_sorbate=pb_id,el='Pb',sorbate_v=tetrahedra_distortion.body_center/basis)
         _add_sorbate(domain=domain,id_sorbate=O_id[0],el='O',sorbate_v=tetrahedra_distortion.p2/basis)
         _add_sorbate(domain=domain,id_sorbate=O_id[1],el='O',sorbate_v=tetrahedra_distortion.p3/basis)
+    
+    def adding_sorbate_pyramid_monodentate(self,domain,top_angle=1.,phi=0.,r=2.25,mirror=False,attach_atm_ids=['id1'],offset=[None],pb_id='pb_id',O_id=['id1','id2']):
+        #The added sorbates (including Pb and one Os) will form a regular trigonal pyramid configuration with the attached ones
+        #O-->pb vector is perpendicular to xy plane and the magnitude of this vector is r
+        p_O1_index=np.where(domain.id==attach_atm_ids[0])
+        basis=np.array([5.038,5.434,7.3707])
+        
+        def _translate_offset_symbols(symbol):
+            if symbol=='-x':return np.array([-1.,0.,0.])
+            elif symbol=='+x':return np.array([1.,0.,0.])
+            elif symbol=='-y':return np.array([0.,-1.,0.])
+            elif symbol=='+y':return np.array([0.,1.,0.])
+            elif symbol==None:return np.array([0.,0.,0.])
 
+        f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
+        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0]+domain.dx1[p_O1_index][0]+domain.dx2[p_O1_index][0]+domain.dx3[p_O1_index][0]+domain.dx4[p_O1_index][0],\
+                       domain.y[p_O1_index][0]+domain.dy1[p_O1_index][0]+domain.dy2[p_O1_index][0]+domain.dy3[p_O1_index][0]+domain.dy4[p_O1_index][0],\
+                       domain.z[p_O1_index][0]+domain.dz1[p_O1_index][0]+domain.dz2[p_O1_index][0]+domain.dz3[p_O1_index][0]+domain.dz4[p_O1_index][0]])\
+                       +_translate_offset_symbols(symbol)
+        p_O1=pt_ct(domain,p_O1_index,offset[0])*basis
+        apex=p_O1+[0,0,r]
+        pyramid=trigonal_pyramid_known_apex.trigonal_pyramid_two_point(apex=apex,p0=p_O1,top_angle=top_angle,phi=phi,mirror=mirror)
+        
+        def _add_sorbate(domain=None,id_sorbate=None,el='Pb',sorbate_v=[]):
+            sorbate_index=None
+            try:
+                sorbate_index=np.where(domain.id==id_sorbate)[0][0]
+            except:
+                domain.add_atom( id_sorbate, el,  sorbate_v[0] ,sorbate_v[1], sorbate_v[2] ,0.5,     1.00000e+00 ,     1.00000e+00 )
+            if sorbate_index!=None:
+                domain.x[sorbate_index]=sorbate_v[0]
+                domain.y[sorbate_index]=sorbate_v[1]
+                domain.z[sorbate_index]=sorbate_v[2]
+                
+        _add_sorbate(domain=domain,id_sorbate=pb_id,el='Pb',sorbate_v=pyramid.apex/basis)
+        _add_sorbate(domain=domain,id_sorbate=O_id[0],el='O',sorbate_v=pyramid.p1/basis)
+        _add_sorbate(domain=domain,id_sorbate=O_id[1],el='O',sorbate_v=pyramid.p2/basis)
+        return [pyramid.apex/basis,pyramid.p1/basis,pyramid.p2/basis]
+        
+    def adding_sorbate_pyramid_bidentate(self,domain,top_angle=1.,phi=0.,attach_atm_ids=['id1','id2'],offset=[None,None],pb_id='pb_id',O_id=['id1'],mirror=False):
+        #The added sorbates (including Pb and one Os) will form a trigonal pyramid configuration with the attached ones
+        #note phi is from 0 to 2pi and top_angel is from 0 to 2pi/3
+        p_O1_index=np.where(domain.id==attach_atm_ids[0])
+        p_O2_index=np.where(domain.id==attach_atm_ids[1])
+        basis=np.array([5.038,5.434,7.3707])
+        
+        def _translate_offset_symbols(symbol):
+            if symbol=='-x':return np.array([-1.,0.,0.])
+            elif symbol=='+x':return np.array([1.,0.,0.])
+            elif symbol=='-y':return np.array([0.,-1.,0.])
+            elif symbol=='+y':return np.array([0.,1.,0.])
+            elif symbol==None:return np.array([0.,0.,0.])
+
+        f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
+        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0]+domain.dx1[p_O1_index][0]+domain.dx2[p_O1_index][0]+domain.dx3[p_O1_index][0]+domain.dx4[p_O1_index][0],\
+                       domain.y[p_O1_index][0]+domain.dy1[p_O1_index][0]+domain.dy2[p_O1_index][0]+domain.dy3[p_O1_index][0]+domain.dy4[p_O1_index][0],\
+                       domain.z[p_O1_index][0]+domain.dz1[p_O1_index][0]+domain.dz2[p_O1_index][0]+domain.dz3[p_O1_index][0]+domain.dz4[p_O1_index][0]])\
+                       +_translate_offset_symbols(symbol)
+        p_O1=pt_ct(domain,p_O1_index,offset[0])*basis
+        p_O2=pt_ct(domain,p_O2_index,offset[1])*basis
+        pyramid_distortion=trigonal_pyramid_distortion.trigonal_pyramid_distortion(p0=p_O1,p1=p_O2,top_angle=top_angle,len_offset=[0,0])#len_offset is 0 to make sure it is a regular polyhedral
+        pyramid_distortion.all_in_all(switch=False,phi=phi,mirror=mirror)
+        
+        def _add_sorbate(domain=None,id_sorbate=None,el='Pb',sorbate_v=[]):
+            sorbate_index=None
+            try:
+                sorbate_index=np.where(domain.id==id_sorbate)[0][0]
+            except:
+                domain.add_atom( id_sorbate, el,  sorbate_v[0] ,sorbate_v[1], sorbate_v[2] ,0.5,     1.00000e+00 ,     1.00000e+00 )
+            if sorbate_index!=None:
+                domain.x[sorbate_index]=sorbate_v[0]
+                domain.y[sorbate_index]=sorbate_v[1]
+                domain.z[sorbate_index]=sorbate_v[2]
+                
+        _add_sorbate(domain=domain,id_sorbate=pb_id,el='Pb',sorbate_v=pyramid_distortion.apex/basis)
+        _add_sorbate(domain=domain,id_sorbate=O_id[0],el='O',sorbate_v=pyramid_distortion.p2/basis)
+        return [pyramid_distortion.apex/basis,pyramid_distortion.p2/basis]
+        
     def adding_sorbate_pyramid_distortion(self,domain,edge_offset=[0.,0.],top_angle=1.,switch=False,phi=0.,attach_atm_ids=['id1','id2'],offset=[None,None],pb_id='pb_id',O_id=['id1']):
         #The added sorbates (including Pb and one Os) will form a edge-distorted trigonal pyramid configuration with the attached ones
         p_O1_index=np.where(domain.id==attach_atm_ids[0])
@@ -962,15 +1061,32 @@ class domain_creator():
             domain.x[O_index1],domain.y[O_index1],domain.z[O_index1]=point1[0],point1[1],point1[2]
             domain.x[O_index2],domain.y[O_index2],domain.z[O_index2]=point2[0],point2[1],point2[2]
             
-    def add_oxygen_pair(self,domain,O_id,ref_point,r,alpha):
+    def add_oxygen_pair(self,domain,O_ids,ref_point,r,alpha):
         #add single oxygen pair to a ref_point,which does not stand for an atom, the xyz for this point will be set as
-        #three fitting parameters.O_id will be attached at the end of each id for the oxygen
+        #three fitting parameters.
+        ref_pt=[5.038,5.434,7.3707]*np.array(ref_point)
         x_shift=r*np.cos(alpha)
         y_shift=r*np.sin(alpha)
-        point1=ref_point[0]-x_shift,ref_point[1]-y_shift,ref_point[2]
-        point2=ref_point[0]+x_shift,ref_point[1]+y_shift,ref_point[2]
-        domain.add_atom(id='Os_1'+str(O_id),element='O',x=point1[0],y=point1[1],z=point1[2],u=1.)
-        domain.add_atom(id='Os_2'+str(O_id),element='O',x=point2[0],y=point2[1],z=point2[2],u=1.)
+        index_1,index_2=0,0
+        point1,point2=[],[]
+        try:
+            index_1=np.where(domain.id==O_ids[0])[0][0]
+            index_2=np.where(domain.id==O_ids[1])[0][0]
+        except:   
+            point1=np.array([ref_pt[0]-x_shift,ref_pt[1]-y_shift,ref_pt[2]])
+            point2=np.array([ref_pt[0]+x_shift,ref_pt[1]+y_shift,ref_pt[2]])
+            domain.add_atom(id=O_ids[0],element='O',x=point1[0],y=point1[1],z=point1[2])
+            domain.add_atom(id=O_ids[1],element='O',x=point2[0],y=point2[1],z=point2[2])
+        if not((index_1==0)&(index_2==0)):
+            point1=np.array([ref_pt[0]-x_shift,ref_pt[1]-y_shift,ref_pt[2]])
+            point2=np.array([ref_pt[0]+x_shift,ref_pt[1]+y_shift,ref_pt[2]])
+            domain.x[index_1]=point2[0]
+            domain.y[index_1]=point2[1]
+            domain.z[index_1]=point2[2]
+            domain.x[index_2]=point1[0]
+            domain.y[index_2]=point1[1]
+            domain.z[index_2]=point1[2]
+        return np.append([point1],[point2],axis=0)
 
     def updata_oxygen_pair(self,domain,ids,ref_point,r,alpha):
         #updata the position information of oxygen pair, to be dropped inside sim func
@@ -1265,12 +1381,185 @@ class domain_creator():
             atm_gp_list.append(temp_atm_gp)
 
         return atm_gp_list
-    def grouping_discrete_layer(self,domain=[],atom_ids=[],sym_file=None,id_match_in_sym=[],use_sym=False):
+    def grouping_discrete_layer(self,domain=[],atom_ids=[],sym_file=None,id_match_in_sym={},use_sym=False):
         #we usually do discrete grouping for sorbates, so there is no symmetry used in this case
-        atm_gp=model.AtomGroup(id_in_sym_file=id_match_in_sym,filename=sym_file,use_sym=use_sym)
+        index=np.where(domain[0].id==atom_ids[0])[0][0]
+        el=domain[0].el[index]
+        atm_gp=model.AtomGroup(id_in_sym_file=id_match_in_sym[el],filename=sym_file[el],use_sym=use_sym)
         for i in range(len(domain)):
             atm_gp.add_atom(domain[i],atom_ids[i])
         return atm_gp
+        
+    def update_oxygen_single_coordinated(self,domain,O_id,Fe_id,offset=[],scale_factor=1.):
+        #to update the first layer oxygen which is singly coordinated
+        #the ref length is the original Fe-O bond length, which will be scaled by the scale factor
+        def _translate_offset_symbols(symbol):
+            if symbol=='-x':return np.array([-1.,0.,0.])
+            elif symbol=='+x':return np.array([1.,0.,0.])
+            elif symbol=='-y':return np.array([0.,-1.,0.])
+            elif symbol=='+y':return np.array([0.,1.,0.])
+            elif symbol==None:return np.array([0.,0.,0.])
+        index_O=np.where(domain.id==O_id)[0][0]
+        index_Fe=np.where(domain.id==Fe_id)[0][0]
+        basis=np.array([5.038,5.434,7.3707])
+        coors_O_original=np.array([domain.x[index_O],domain.y[index_O],domain.z[index_O]])+_translate_offset_symbols(offset[0])
+        coors_O_current=extract_coor(domain,O_id)+_translate_offset_symbols(offset[0])
+        coors_Fe_original=np.array([domain.x[index_Fe],domain.y[index_Fe],domain.z[index_Fe]])+_translate_offset_symbols(offset[1])
+        coors_Fe_current=extract_coor(domain,Fe_id)+_translate_offset_symbols(offset[1])
+        ref_l=f2(coors_O_original*basis,coors_Fe_original*basis)
+        new_l=ref_l*scale_factor
+        scale_factor_new=new_l/f2(coors_O_current*basis,coors_Fe_current*basis)
+        Fe_O_v_new=(coors_O_current-coors_Fe_current)*scale_factor_new
+        coors_O_new=Fe_O_v_new+coors_Fe_current
+        dxdydz=coors_O_new-coors_O_original
+        domain.dx1[index_O],domain.dy1[index_O],domain.dz1[index_O]=dxdydz[0],dxdydz[1],dxdydz[2]
+        return coors_O_new
+        
+    def update_oxygen_single_coordinated2(self,domain,O_id,Fe_id,offset=[],scale_factor=1.):
+        #fix the recursive issue during fitting
+        #to update the first layer oxygen which is singly coordinated
+        #the ref length is the original Fe-O bond length, which will be scaled by the scale factor
+        def _translate_offset_symbols(symbol):
+            if symbol=='-x':return np.array([-1.,0.,0.])
+            elif symbol=='+x':return np.array([1.,0.,0.])
+            elif symbol=='-y':return np.array([0.,-1.,0.])
+            elif symbol=='+y':return np.array([0.,1.,0.])
+            elif symbol==None:return np.array([0.,0.,0.])
+        index_O=np.where(domain.id==O_id)[0][0]
+        index_Fe=np.where(domain.id==Fe_id)[0][0]
+        basis=np.array([5.038,5.434,7.3707])
+        coors_O_original=np.array([domain.x[index_O],domain.y[index_O],domain.z[index_O]])+_translate_offset_symbols(offset[0])
+        coors_Fe_original=np.array([domain.x[index_Fe],domain.y[index_Fe],domain.z[index_Fe]])+_translate_offset_symbols(offset[1])
+        ref_l=f2(coors_O_original*basis,coors_Fe_original*basis)
+        Fe_O_v_new=(coors_O_original-coors_Fe_original)*scale_factor
+        coors_O_new=Fe_O_v_new+coors_Fe_original
+        dxdydz=coors_O_new-coors_O_original
+        domain.dx1[index_O],domain.dy1[index_O],domain.dz1[index_O]=dxdydz[0],dxdydz[1],dxdydz[2]
+        return coors_O_new
+        
+    def update_oxygen_p4_symmetry(self,domain,O_id,Fe_id,offset=[],O_id_in_order=[],dxdy=[0,0]):
+        #the second and third layer of oxygen are arranged in a p4 symmetry
+        #Fe_id is the body center, O_Fe will define a z vector, the normal plane to z vector define the xy plane which is the rotation plane
+        #only consider the inplane movement fraction in the original coordinate system, ie ignore the calculated dz
+        #dxdy is the dxdy shiftment in the rotation plane in unit of Angstrom for the ref atom (first in the O_id_in_order)
+        #the other associated shiftment will be calculated based on p4 symmetry configuration
+        #finally the dxdy will be converted to dxdy in the original coordinate system
+        #make sure the order of oxygen in the O_id_in_order is based on the rotation order
+        def _translate_offset_symbols(symbol):
+            if symbol=='-x':return np.array([-1.,0.,0.])
+            elif symbol=='+x':return np.array([1.,0.,0.])
+            elif symbol=='-y':return np.array([0.,-1.,0.])
+            elif symbol=='+y':return np.array([0.,1.,0.])
+            elif symbol==None:return np.array([0.,0.,0.])
+            
+        index_O=np.where(domain.id==O_id)[0][0]
+        index_Fe=np.where(domain.id==Fe_id)[0][0]
+        basis=np.array([5.038,5.434,7.3707])
+        coors_O=(extract_coor(domain,O_id)+_translate_offset_symbols(offset[0]))*basis
+        coors_Fe=(extract_coor(domain,Fe_id)+_translate_offset_symbols(offset[1]))*basis
+        p0,p1=coors_O,coors_Fe
+        n_v=p0-p1
+        origin=p1
+        a,b,c=n_v[0],n_v[1],n_v[2]
+        x0,y0,z0=p1[0],p1[1],p1[2]
+        ref_p=0
+        if c!=0.:
+            ref_p=np.array([1.,1.,(a*(x0-1.)+b*(y0-1.))/c+z0])
+        elif b!=0.:
+            ref_p=np.array([1.,(a*(x0-1.)+c*(z0-1.))/b+y0,1.])
+        else:
+            ref_p=np.array([(b*(y0-1.)+c*(z0-1.))/a+x0,1.,1.])
+        y_v=f3(np.zeros(3),(ref_p-origin))
+        z_v=f3(np.zeros(3),(p0-origin))
+        x_v=np.cross(y_v,z_v)
+        T=f1(x0_v,y0_v,z0_v,x_v,y_v,z_v)
+        dxdydz_ref=dxdy+[0]
+        M_p4=np.array([[0,-1,0],[1,0,0],[0,0,1]])
+        dxdydz_1=np.dot(M_p4,dxdydz_ref)
+        dxdydz_2=np.dot(M_p4,dxdydz_1)
+        dxdydz_3=np.dot(M_p4,dxdydz_2)
+        dxdydz_ref=np.dot(inv(T),dxdydz_ref)/basis
+        dxdydz_1=np.dot(inv(T),dxdydz_1)/basis
+        dxdydz_2=np.dot(inv(T),dxdydz_2)/basis
+        dxdydz_3=np.dot(inv(T),dxdydz_3)/basis
+        dxdydz_list=[dxdydz_ref,dxdydz_1,dxdydz_2,dxdydz_3]
+        for i in range(len(O_id_in_order)):
+            index=np.where(domain.id==O_id_in_order[i])[0][0]
+            domain.dx1[index],domain.dy1[index]=dxdydz_list[i][0],dxdydz_list[i][1]
+        return dxdydz_list
+    def update_oxygen_p4_symmetry2(self,domain,O_id,Fe_id,offset=[],O_id_in_order=[],dxdy=[0,0]):
+        #try to fix the recursive issue
+        #the second and third layer of oxygen are arranged in a p4 symmetry
+        #Fe_id is the body center, O_Fe will define a z vector, the normal plane to z vector define the xy plane which is the rotation plane
+        #only consider the inplane movement fraction in the original coordinate system, ie ignore the calculated dz
+        #dxdy is the dxdy shiftment in the rotation plane in unit of Angstrom for the ref atom (first in the O_id_in_order)
+        #the other associated shiftment will be calculated based on p4 symmetry configuration
+        #finally the dxdy will be converted to dxdy in the original coordinate system
+        #make sure the order of oxygen in the O_id_in_order is based on the rotation order
+        def _translate_offset_symbols(symbol):
+            if symbol=='-x':return np.array([-1.,0.,0.])
+            elif symbol=='+x':return np.array([1.,0.,0.])
+            elif symbol=='-y':return np.array([0.,-1.,0.])
+            elif symbol=='+y':return np.array([0.,1.,0.])
+            elif symbol==None:return np.array([0.,0.,0.])
+            
+        index_O=np.where(domain.id==O_id)[0][0]
+        index_Fe=np.where(domain.id==Fe_id)[0][0]
+        basis=np.array([5.038,5.434,7.3707])
+        coors_O=(np.array([domain.x[index_O],domain.y[index_O],domain.z[index_O]])+_translate_offset_symbols(offset[0]))*basis
+        coors_Fe=(np.array([domain.x[index_Fe],domain.y[index_Fe],domain.z[index_Fe]])+_translate_offset_symbols(offset[1]))*basis
+        p0,p1=coors_O,coors_Fe
+        n_v=p0-p1
+        origin=p1
+        a,b,c=n_v[0],n_v[1],n_v[2]
+        x0,y0,z0=p1[0],p1[1],p1[2]
+        ref_p=0
+        if c!=0.:
+            ref_p=np.array([1.,1.,(a*(x0-1.)+b*(y0-1.))/c+z0])
+        elif b!=0.:
+            ref_p=np.array([1.,(a*(x0-1.)+c*(z0-1.))/b+y0,1.])
+        else:
+            ref_p=np.array([(b*(y0-1.)+c*(z0-1.))/a+x0,1.,1.])
+        y_v=f3(np.zeros(3),(ref_p-origin))
+        z_v=f3(np.zeros(3),(p0-origin))
+        x_v=np.cross(y_v,z_v)
+        T=f1(x0_v,y0_v,z0_v,x_v,y_v,z_v)
+        dxdydz_ref=dxdy+[0]
+        M_p4=np.array([[0,-1,0],[1,0,0],[0,0,1]])
+        dxdydz_1=np.dot(M_p4,dxdydz_ref)
+        dxdydz_2=np.dot(M_p4,dxdydz_1)
+        dxdydz_3=np.dot(M_p4,dxdydz_2)
+        dxdydz_ref=np.dot(inv(T),dxdydz_ref)/basis
+        dxdydz_1=np.dot(inv(T),dxdydz_1)/basis
+        dxdydz_2=np.dot(inv(T),dxdydz_2)/basis
+        dxdydz_3=np.dot(inv(T),dxdydz_3)/basis
+        dxdydz_list=[dxdydz_ref,dxdydz_1,dxdydz_2,dxdydz_3]
+        for i in range(len(O_id_in_order)):
+            index=np.where(domain.id==O_id_in_order[i])[0][0]
+            domain.dx1[index],domain.dy1[index]=dxdydz_list[i][0],dxdydz_list[i][1]
+        return dxdydz_list
+      
+    def update_oxygen_p4_symmetry3(self,domain,Fe_id,O_id_in_order=[],offset=[],theta=0,scale_factor=1):
+        #a different algorithem is used in this version
+        #the O atoms will be projected on xy plane, and Fe will be set as the center (origin) of the retangular (maybe not retangular)
+        #Then apply rotation of theta for each oxygen and scale the final rotated vector by scale_factor
+        #The difference bw the rotated and initial vector is the assciated dxdy
+        def _translate_offset_symbols(symbol):
+            if symbol=='-x':return np.array([-1.,0.,0.])
+            elif symbol=='+x':return np.array([1.,0.,0.])
+            elif symbol=='-y':return np.array([0.,-1.,0.])
+            elif symbol=='+y':return np.array([0.,1.,0.])
+            elif symbol==None:return np.array([0.,0.,0.])
+            
+        index_Fe=np.where(domain.id==Fe_id)[0][0]
+        index_Os=[np.where(domain.id==O_id_in_order[i])[0][0] for i in range(len(O_id_in_order))]
+        basis=np.array([5.038,5.434,7.3707])
+        coors_Fe=(np.array([domain.x[index_Fe],domain.y[index_Fe],domain.z[index_Fe]]))*basis
+        coors_Os=[(np.array([domain.x[index_Os[i]],domain.y[index_Os[i]],domain.z[index_Os[i]]])+_translate_offset_symbols(offset[i]))*basis for i in range(len(offset))]
+        M=np.array([[np.cos(theta),-np.sin(theta)],[np.sin(theta),np.cos(theta)]])
+        for i in range(len(O_id_in_order)):
+            dxdy=(np.dot(M,(coors_Os[i]-coors_Fe)[:2])*scale_factor+coors_Fe[:2]-coors_Os[i][:2])/basis[:2]
+            domain.dx1[index_Os[i]],domain.dy1[index_Os[i]]=dxdy[0],dxdy[1]
         
     def grouping_discrete_layer_batch(self,filename):
         gp_list=[]
@@ -1667,8 +1956,9 @@ class domain_creator():
         offset=[]
         full_offset=['+x','-x','+y','-y','+x-y','+x+y','-x+y','-x-y']
         basis=np.array([5.038,5.434,7.3707])
-        f1=lambda domain,index:np.array([domain.x[index]+domain.dx1[index],domain.y[index]+domain.dy1[index],domain.z[index]+domain.dz1[index]])*basis
+        f1=lambda domain,index:np.array([domain.x[index]+domain.dx1[index]+domain.dx2[index]+domain.dx3[index],domain.y[index]+domain.dy1[index]+domain.dy2[index]+domain.dy3[index],domain.z[index]+domain.dz1[index]+domain.dz2[index]+domain.dz3[index]])*basis
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
+        #print domain.id,id
         index=np.where(domain.id==id)[0][0]
         [neighbor_container.append(domain.id[i]) for i in range(len(domain.id)) if (f2(f1(domain,index),f1(domain,i))<=searching_range)&(f2(f1(domain,index),f1(domain,i))!=0.)]
         for i in neighbor_container:
@@ -2008,7 +2298,10 @@ class domain_creator():
         #return a lib with the same key as match_lib, the value for each key is the bond valence calculated
         bond_valence_container={}
         for i in match_lib.keys():
-            match_lib[i].append(0)
+            try:
+                match_lib[i][2]=0
+            except:
+                match_lib[i].append(0)
             bond_valence_container[i]=0
             
         basis=np.array([5.038,5.434,7.3707])
@@ -2053,24 +2346,24 @@ class domain_creator():
                 if dist<3.:#take it counted only when they are not two far away
                     bond_valence_container[i]=bond_valence_container[i]+np.exp((r0-dist)/0.37)
                     match_lib[i][2]=match_lib[i][2]+1
-        """
+        
         for i in bond_valence_container.keys():
             #try to add hydrogen or hydrogen bond to the oxygen with 1.6=2*OH, 1.=OH+H, 0.8=OH and 0.2=H
             index=np.where(domain.id==i)[0][0]
             if (domain.el[index]=='O')|(domain.el[index]=='o'):
                 case_tag=match_lib[i][2]
                 bond_valence_corrected_value=[0.]
-                if case_tag==1.:
+                if ((case_tag==1.)&(bond_valence_container[i]<2)):
                     bond_valence_corrected_value=[1.8,1.6,1.2,1.,0.8,0.6,0.4,0.2,0.]
-                elif case_tag==2.:
+                elif ((case_tag==2.)&(bond_valence_container[i]<2)):
                     bond_valence_corrected_value=[1.6,1.,0.8,0.4,0.2,0.]
-                elif case_tag==3.:
+                elif ((case_tag==3.)&(bond_valence_container[i]<2)):
                     bond_valence_corrected_value=[0.8,0.2,0.]
                 else:pass
                 #bond_valence_corrected_value=[1.6,1.,0.8,0.2,0.]
                 ref=np.sign(bond_valence_container[i]+np.array(bond_valence_corrected_value)-2.)*(bond_valence_container[i]+np.array(bond_valence_corrected_value)-2.)
                 bond_valence_container[i]=bond_valence_container[i]+bond_valence_corrected_value[np.where(ref==np.min(ref))[0][0]]
-        """
+        
         return bond_valence_container
         
     def cal_bond_valence4(self,domain,center_atm,match_list):

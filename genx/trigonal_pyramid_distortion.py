@@ -40,7 +40,7 @@ class trigonal_pyramid_distortion():
         right_side=f2(self.p0,self.p1)*np.sin(self.sharp_angle)
         self.edge_len=right_side/np.sin(np.pi-self.top_angle)
         
-    def cal_apex_coor(self,switch=False,phi=0.):
+    def cal_apex_coor(self,switch=False,phi=0.,mirror=False):
     #basis idea: set a new coordinate frame with p0p1 as the z vector (start from p1)
     #set a arbitrary y vector on the normal plane, and cross product to solve the x vector
     #then use phi and theta (sharp angle) to sove the cross_point(CP on file) and apex (A on file)
@@ -71,12 +71,12 @@ class trigonal_pyramid_distortion():
         apex_new = np.array([r2*np.cos(phi)*np.sin(theta),r2*np.sin(phi)*np.sin(theta),r2*np.cos(theta)])
         self.cross_pt = np.dot(inv(T),cross_pt_new)+origin
         self.apex = np.dot(inv(T),apex_new)+origin
-        self.cal_p2(p0,p1)
+        self.cal_p2(p0,p1,mirror)
         
-    def cal_p2(self,p0,p1):
+    def cal_p2(self,p0,p1,mirror=False):
         #basic idea:set z vector rooting from EC to cp, x vector from EC to A (normalized to length of 1)
         #use angle of theta (pi/2 here) and phi (the angle A_EC_P2, can be calculated) to sove P2 finally 
-    
+        #if consider mirror then p2 will be on the other side
         side_center=(p0+self.cross_pt)/2.
         origin=side_center
         z_v=f3(np.zeros(3),(self.cross_pt-side_center))
@@ -87,6 +87,7 @@ class trigonal_pyramid_distortion():
         dst_face_ct_edge_ct=f2(p0,self.cross_pt)/2*np.tan(np.pi/6.)
         dst_p2_edge_ct=f2(p0,self.cross_pt)/2*np.tan(np.pi/3.)
         phi=np.arccos(dst_face_ct_edge_ct/f2(self.apex,(p0+self.cross_pt)/2.))
+        if mirror:phi=-phi
         r=dst_p2_edge_ct
         p2_new=np.array([r*np.cos(phi)*np.sin(theta),r*np.sin(phi)*np.sin(theta),r*np.cos(theta)])
         _p2=np.dot(inv(T),p2_new)+origin
@@ -95,13 +96,13 @@ class trigonal_pyramid_distortion():
         p2_v=_p2_v*scale
         self.p2=p2_v+self.apex
         
-    def all_in_all(self,switch=False,phi=0.):
+    def all_in_all(self,switch=False,phi=0.,mirror=False):
         self.cal_theta()
         self.cal_edge_len()
-        self.cal_apex_coor(switch=switch, phi=phi)
+        self.cal_apex_coor(switch=switch, phi=phi,mirror=mirror)
         
-    def print_file(self):
-        f=open('Y:\\codes\\my code\\modeling files\\surface modeling 1\\scripts\\tetrahedra_test.xyz','w')
+    def print_file(self,file):
+        f=open(file,'w')
         s = '%-5s   %7.5e   %7.5e   %7.5e\n' % ('Pb', self.apex[0],self.apex[1],self.apex[2])
         f.write(s)
         s = '%-5s   %7.5e   %7.5e   %7.5e\n' % ('O', self.p0[0],self.p0[1],self.p0[2])
