@@ -27,5 +27,9 @@ class create_table:
         self.f2.close()
 
 if __name__=='__main__':
+<<<<<<< HEAD
+    test1=create_parameter_table.create_table('raw match file.txt','table file.txt')
+=======
     test1=create_parameter_table.create_table('D:\\Github\\mpi_genx\\ref\\raw_match.raw','D:\\Github\\mpi_genx\\ref\\genx.tab')
+>>>>>>> d578457b7c782670349d241f56336e0c4bd88899
     
