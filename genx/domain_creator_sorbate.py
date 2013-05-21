@@ -408,7 +408,7 @@ class domain_creator_sorbate():
         return sorbate_v*basis
         
 
-    def adding_sorbate_pyramid_distortion(self,domain,edge_offset=[0.,0.],top_angle=1.,switch=False,mirror=False,phi=0.,attach_atm_ids=['id1','id2'],offset=[None,None],pb_id='pb_id',O_id=['id1']):
+    def adding_sorbate_pyramid_distortion(self,domain,top_angle=1.,phi=0.,edge_offset=[0,0],attach_atm_ids=['id1','id2'],offset=[None,None],pb_id='pb_id',O_id=['id1'],mirror=False):
         #The added sorbates (including Pb and one Os) will form a edge-distorted trigonal pyramid configuration with the attached ones
         p_O1_index=np.where(domain.id==attach_atm_ids[0])
         p_O2_index=np.where(domain.id==attach_atm_ids[1])
@@ -444,7 +444,7 @@ class domain_creator_sorbate():
                 
         _add_sorbate(domain=domain,id_sorbate=pb_id,el='Pb',sorbate_v=pyramid_distortion.apex/basis)
         _add_sorbate(domain=domain,id_sorbate=O_id[0],el='O',sorbate_v=pyramid_distortion.p2/basis)
-  
+        return [pyramid_distortion.apex/basis,pyramid_distortion.p2/basis]
 
     def adding_sorbate_pyramid_monodentate(self,domain,top_angle=1.,phi=0.,r=2.25,mirror=False,attach_atm_ids=['id1'],offset=[None],pb_id='pb_id',O_id=['id1','id2']):
         #The added sorbates (including Pb and one Os) will form a regular trigonal pyramid configuration with the attached ones

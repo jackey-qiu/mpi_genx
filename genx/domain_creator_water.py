@@ -186,11 +186,11 @@ class domain_creator_water():
             domain.z[index_2]=point1[2]
         return np.append([point1],[point2],axis=0)
 
-    def add_oxygen_pair2(self,domain,ref_id,ref_xy,O_id,v_shift,r,alpha):
+    def add_oxygen_pair2(self,domain,ref_id,O_ids,v_shift,r,alpha):
     #v_shift and r are in unit of angstrom
         ref_index=np.where(domain.id==ref_id)[0][0]
         basis=np.array([5.038,5.434,7.3707])
-        ref_point=[ref_xy[0]*basis[0],ref_xy[1]*basis[1],domain.z[ref_index]*basis[2]+v_shift]
+        ref_point=[domain.x[ref_index]*basis[0],domain.y[ref_index]*basis[1],domain.z[ref_index]*basis[2]+v_shift]
         x_shift=r*np.cos(alpha)
         y_shift=r*np.sin(alpha)
         point1=np.array([ref_point[0]-x_shift,ref_point[1]-y_shift,ref_point[2]])/basis
@@ -198,11 +198,11 @@ class domain_creator_water():
         O_index1=None
         O_index2=None
         try:
-            O_index1=np.where(domain.id==O_id[0])[0][0]
-            O_index2=np.where(domain.id==O_id[1])[0][0]
+            O_index1=np.where(domain.id==O_ids[0])[0][0]
+            O_index2=np.where(domain.id==O_ids[1])[0][0]
         except:
-            domain.add_atom( O_id[0], "O",  point1[0] ,point1[1], point1[2] ,0.32,     1.00000e+00 ,     1.00000e+00 )
-            domain.add_atom( O_id[1], "O",  point2[0] ,point2[1], point2[2] ,0.32,     1.00000e+00 ,     1.00000e+00 )
+            domain.add_atom( O_ids[0], "O",  point1[0] ,point1[1], point1[2] ,0.32,     1.00000e+00 ,     1.00000e+00 )
+            domain.add_atom( O_ids[1], "O",  point2[0] ,point2[1], point2[2] ,0.32,     1.00000e+00 ,     1.00000e+00 )
         if O_index1!=None:
             domain.x[O_index1],domain.y[O_index1],domain.z[O_index1]=point1[0],point1[1],point1[2]
             domain.x[O_index2],domain.y[O_index2],domain.z[O_index2]=point2[0],point2[1],point2[2]

@@ -15,6 +15,22 @@ f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
 #direction of the basis is pointing from p1 to p2
 f3=lambda p1,p2:(1./f2(p1,p2))*(p2-p1)+p1
 #refer the the associated ppt file when read the comments
+
+basis=[5.038,5.474,7.3707]
+#atoms to be checked for distance
+atms_cell=[[0.653,1.112,1.903],[0.847,0.612,1.903],[0.306,0.744,1.75],[0.194,0.243,1.75],\
+      [0.5,1.019,1.645],[0,0.518,1.645],[0.847,0.876,1.597],[0.653,0.375,1.597]]
+atms=np.append(np.array(atms_cell),np.array(atms_cell)+[-1,0,0],axis=0)
+atms=np.append(atms,np.array(atms_cell)+[1,0,0],axis=0)
+atms=np.append(atms,np.array(atms_cell)+[0,-1,0],axis=0)
+atms=np.append(atms,np.array(atms_cell)+[0,1,0],axis=0)
+atms=np.append(atms,np.array(atms_cell)+[1,1,0],axis=0)
+atms=np.append(atms,np.array(atms_cell)+[-1,-1,0],axis=0)
+atms=np.append(atms,np.array(atms_cell)+[1,-1,0],axis=0)
+atms=np.append(atms,np.array(atms_cell)+[-1,1,0],axis=0)
+
+atms=atms*basis
+
 class trigonal_pyramid_distortion():
     
     def __init__(self,p0=[0.,0.,0.],p1=[2.,2.,2.],top_angle=1.0,len_offset=[0.,0.]):
@@ -112,3 +128,55 @@ class trigonal_pyramid_distortion():
         s = '%-5s   %7.5e   %7.5e   %7.5e\n' % ('O', self.p2[0],self.p2[1],self.p2[2])
         f.write(s)
         f.close()
+
+#steric_check will check the steric feasibility by changing the rotation angle (0-2pi) and top angle (0-2pi/3)
+#the dist bw sorbate(both metal and oxygen) and atms (defined on top) will be cal and compared to the cutting_limit
+#higher cutting limit will result in more items in return file (so be wise to choose cutting limit)
+#the container has 9 items, ie phi (rotation angle), top_angle, low_dis, apex coors (x,y,z), os coors(x,y,z)
+#in which the low_dis is the lowest dist between sorbate and atm (averaged value)
+class steric_check(trigonal_pyramid_distortion):
+    def __init__(self,p0=[0.,0.,0.],p1=[2.,2.,2.],len_offset=[0.,0.],cutting_limit=3.):
+        self.p0,self.p1=np.array(p0),np.array(p1)
+        self.len_offset=len_offset
+        self.cutting_limit=cutting_limit
+        self.container=np.zeros((1,9))[0:0]
+    def steric_check(self,top_ang_res=0.2,phi_res=0.5,switch=False,mirror=False,print_path=None):
+        for top in np.arange(1.,2.0,top_ang_res):
+            for phi in np.arange(0,np.pi*2,phi_res):
+                self.top_angle=top
+                self.shoulder_angle=(np.pi-top)/2.
+                self.all_in_all(switch=switch,phi=phi,mirror=mirror)
+                low_limit=self.cutting_limit*2
+                for atm in atms:
+                    dt_apex_atm,dt_p2_atm=f2(atm,self.apex),f2(atm,self.p2)
+                    if dt_apex_atm!=0:
+                        if (dt_apex_atm<self.cutting_limit)|(dt_p2_atm<self.cutting_limit):
+                            low_limit=None
+                            break
+                        else:
+                            if (dt_apex_atm+dt_p2_atm)/2.<low_limit:
+                                low_limit=(dt_apex_atm+dt_p2_atm)/2.
+                            else:pass
+                if low_limit!=None:
+                    A,p2=self.apex,self.p2
+                    self.container=np.append(self.container,[[phi,top,low_limit,A[0],A[1],A[2],p2[0],p2[1],p2[2]]],axis=0)
+                else:pass
+        data=np.rec.fromarrays([self.container[:,0],self.container[:,1],\
+                                self.container[:,2],self.container[:,3],\
+                                self.container[:,4],self.container[:,5],\
+                                self.container[:,6],self.container[:,7],\
+                                self.container[:,8]],names='phi,top,low,A1,A2,A3,P1,P2,P3')
+        data.sort(order=('phi','top','low'))
+        if print_path!=None:
+            np.savetxt(print_path,data,"%5.3f")
+        
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    

@@ -84,6 +84,80 @@ grid_match_lib[7]={2:'-y',3:'-x-y',4:'-x',5:None,6:None,1:'-y',8:None,9:'-x'}
 grid_match_lib[8]={2:'-y',3:'-y',4:None,5:None,6:None,7:None,1:'-y',9:None}
 grid_match_lib[9]={2:'-y',3:'-y',4:None,5:None,6:'+x',7:'+x',8:None,1:'+x-y'}
 
+################################some functions to be called in GenX script#######################################
+#atoms (sorbates) will be added to position specified by the coor(usually set the coor to the center, then you can easily set dxdy range to [-0.5,0.5] [
+def add_atom(domain,ref_coor=[],ids=[],els=[]):
+    for i in range(len(ids)):
+        try:
+            domain.add_atom(ids[i],els[i],ref_coor[i][0],ref_coor[i][1],ref_coor[i][2],0.5,1.0,1.0)
+        except:
+            index=np.where(domain.id==ids[i])[0][0]
+            domain.x[index]=ref_coor[i][0]
+            domain.y[index]=ref_coor[i][1]
+            domain.z[index]=ref_coor[i][2]
+
+#function to export refined atoms positions after fitting
+def print_data(N_sorbate=4,N_atm=40,domain='',z_shift=1,save_file='D://model.xyz'):
+    data=domain._extract_values()
+    index_all=range(len(data[0]))
+    index=index_all[0:20]+index_all[N_atm:N_atm+N_sorbate]
+    f=open(save_file,'w')
+    for i in index:
+        s = '%-5s   %7.5e   %7.5e   %7.5e\n' % (data[3][i],data[0][i]*5.038,(data[1][i]-0.1391)*5.434,(data[2][i]-z_shift)*7.3707)
+        f.write(s)
+    f.close()
+ 
+def create_list(ids,off_set_begin,start_N):
+    ids_processed=[[],[]]
+    off_set=[None,'+x','-x','+y','-y','+x+y','+x-y','-x+y','-x-y']
+    for i in range(start_N):
+        ids_processed[0].append(ids[i])
+        ids_processed[1].append(off_set_begin[i])
+    for i in range(start_N,len(ids)):
+        for j in range(9):
+            ids_processed[0].append(ids[i])
+            ids_processed[1].append(off_set[j])
+    return ids_processed 
+#function to build reference bulk and surface slab  
+def add_atom_in_slab(slab,filename):
+    f=open(filename)
+    lines=f.readlines()
+    for line in lines:
+        if line[0]!='#':
+            items=line.strip().rsplit(',')
+            slab.add_atom(str(items[0]),str(items[1]),float(items[2]),float(items[3]),float(items[4]),float(items[5]),float(items[6]),float(items[7]))
+
+#here only consider the match in the bulk,the offset should be maintained during fitting
+def create_match_lib_before_fitting(domain_class,domain,atm_list,search_range):
+    match_lib={}
+    for i in atm_list:
+        atms,offset=domain_class.find_neighbors(domain,i,search_range)
+        match_lib[i]=[atms,offset]
+    return match_lib
+#Here we consider match with sorbate atoms, sorbates move around within one unitcell, so the offset will be change accordingly
+#So this function should be placed inside sim function
+#Note there is no return in this function, which will only update match_lib
+def create_match_lib_during_fitting(domain_class,domain,atm_list,pb_list,HO_list,match_lib):
+    match_list=[[atm_list,pb_list+HO_list],[pb_list,atm_list+HO_list],[HO_list,atm_list+pb_list]]
+    #[atm_list,pb_list+HO_list]:atoms in atm_list will be matched to atoms in pb_list+HO_list
+    for i in range(len(match_list)):
+        atm_list_1,atm_list_2=match_list[i][0],match_list[i][1]
+        for atm1 in atm_list_1:
+            grid=domain_class.create_grid_number(atm1,domain)
+            for atm2 in atm_list_2:
+                grid_compared=domain_class.create_grid_number(atm2,domain)
+                offset=domain_class.compare_grid(grid,grid_compared)
+                if atm1 in match_lib.keys():
+                    match_lib[atm1][0].append(atm2)
+                    match_lib[atm1][1].append(offset)
+                else:
+                    match_lib[atm1]=[[atm2],[offset]]
+
+def create_sorbate_ids(el='Pb',N=2,tag='_D1A'):
+    id_list=[]
+    [id_list.append(el+str(i+1)+tag) for i in range(N)]
+    return id_list
+    
 class domain_creator(domain_creator_water,domain_creator_sorbate,domain_creator_surface):
     def __init__(self,ref_domain,id_list,terminated_layer=0,domain_tag='_D1',new_var_module=None):
         #id_list is a list of id in the order of ref_domain,terminated_layer is the index number of layer to be considered
