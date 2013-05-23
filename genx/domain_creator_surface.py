@@ -191,7 +191,10 @@ class domain_creator_surface():
         #we usually do discrete grouping for sorbates, so there is no symmetry used in this case
         index=np.where(domain[0].id==atom_ids[0])[0][0]
         el=domain[0].el[index]
-        atm_gp=model.AtomGroup(id_in_sym_file=id_match_in_sym[el],filename=sym_file[el],use_sym=use_sym)
+        atm_gp=None
+        if use_sym:
+            atm_gp=model.AtomGroup(id_in_sym_file=id_match_in_sym[el],filename=sym_file[el],use_sym=use_sym)
+        else:atm_gp=model.AtomGroup()
         for i in range(len(domain)):
             atm_gp.add_atom(domain[i],atom_ids[i])
         return atm_gp

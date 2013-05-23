@@ -408,7 +408,7 @@ class domain_creator_sorbate():
         return sorbate_v*basis
         
 
-    def adding_sorbate_pyramid_distortion(self,domain,top_angle=1.,phi=0.,edge_offset=[0,0],attach_atm_ids=['id1','id2'],offset=[None,None],pb_id='pb_id',O_id=['id1'],mirror=False):
+    def adding_sorbate_pyramid_distortion(self,domain,top_angle=1.,phi=0.,edge_offset=[0,0],attach_atm_ids=['id1','id2'],offset=[None,None],pb_id='pb_id',O_id=['id1'],mirror=False,switch=False):
         #The added sorbates (including Pb and one Os) will form a edge-distorted trigonal pyramid configuration with the attached ones
         p_O1_index=np.where(domain.id==attach_atm_ids[0])
         p_O2_index=np.where(domain.id==attach_atm_ids[1])

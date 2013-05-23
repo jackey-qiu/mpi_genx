@@ -206,7 +206,7 @@ class domain_creator_water():
         if O_index1!=None:
             domain.x[O_index1],domain.y[O_index1],domain.z[O_index1]=point1[0],point1[1],point1[2]
             domain.x[O_index2],domain.y[O_index2],domain.z[O_index2]=point2[0],point2[1],point2[2]
-
+        return np.append([point1],[point2],axis=0)
 
     def add_oxygen_pair_sphere(self,domain,o_id_list=[],sorbate_id='O_1',r=1.,theta_list=[],phi_list=[]):
         #sorbate_coor and r are in angstrom

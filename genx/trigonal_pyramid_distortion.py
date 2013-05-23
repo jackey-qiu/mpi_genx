@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.linalg import inv
+import os
 #here only consider the distortion caused by length difference of three edges, it is a tectrahedral configuration basically, but not a regular one
 #since the top angle can be any value in [0,2*pi/3]
 x0_v,y0_v,z0_v=np.array([1.,0.,0.]),np.array([0.,1.,0.]),np.array([0.,0.,1.])
@@ -16,9 +17,9 @@ f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
 f3=lambda p1,p2:(1./f2(p1,p2))*(p2-p1)+p1
 #refer the the associated ppt file when read the comments
 
-basis=[5.038,5.474,7.3707]
+basis=np.array([5.038,5.474,7.3707])
 #atoms to be checked for distance
-atms_cell=[[0.653,1.112,1.903],[0.847,0.612,1.903],[0.306,0.744,1.75],[0.194,0.243,1.75],\
+atms_cell=[[0.653,1.1121,1.903],[0.847,0.6121,1.903],[0.306,0.744,1.75],[0.194,0.243,1.75],\
       [0.5,1.019,1.645],[0,0.518,1.645],[0.847,0.876,1.597],[0.653,0.375,1.597]]
 atms=np.append(np.array(atms_cell),np.array(atms_cell)+[-1,0,0],axis=0)
 atms=np.append(atms,np.array(atms_cell)+[1,0,0],axis=0)
@@ -30,6 +31,7 @@ atms=np.append(atms,np.array(atms_cell)+[1,-1,0],axis=0)
 atms=np.append(atms,np.array(atms_cell)+[-1,1,0],axis=0)
 
 atms=atms*basis
+O1,O2=[0.653,1.1121,1.903]*basis,[0.847,0.6121,1.903]*basis
 
 class trigonal_pyramid_distortion():
     
@@ -135,12 +137,12 @@ class trigonal_pyramid_distortion():
 #the container has 9 items, ie phi (rotation angle), top_angle, low_dis, apex coors (x,y,z), os coors(x,y,z)
 #in which the low_dis is the lowest dist between sorbate and atm (averaged value)
 class steric_check(trigonal_pyramid_distortion):
-    def __init__(self,p0=[0.,0.,0.],p1=[2.,2.,2.],len_offset=[0.,0.],cutting_limit=3.):
+    def __init__(self,p0=O1,p1=O2,len_offset=[0.,0.],cutting_limit=3.):
         self.p0,self.p1=np.array(p0),np.array(p1)
         self.len_offset=len_offset
         self.cutting_limit=cutting_limit
         self.container=np.zeros((1,9))[0:0]
-    def steric_check(self,top_ang_res=0.2,phi_res=0.5,switch=False,mirror=False,print_path=None):
+    def steric_check(self,top_ang_res=0.1,phi_res=0.5,switch=False,mirror=False,print_path=None):
         for top in np.arange(1.,2.0,top_ang_res):
             for phi in np.arange(0,np.pi*2,phi_res):
                 self.top_angle=top
@@ -148,8 +150,8 @@ class steric_check(trigonal_pyramid_distortion):
                 self.all_in_all(switch=switch,phi=phi,mirror=mirror)
                 low_limit=self.cutting_limit*2
                 for atm in atms:
-                    dt_apex_atm,dt_p2_atm=f2(atm,self.apex),f2(atm,self.p2)
-                    if dt_apex_atm!=0:
+                    if ((abs(sum(atm-self.p0))>0.01)&(abs(sum(atm-self.p1))>0.01)):
+                        dt_apex_atm,dt_p2_atm=f2(atm,self.apex),f2(atm,self.p2)
                         if (dt_apex_atm<self.cutting_limit)|(dt_p2_atm<self.cutting_limit):
                             low_limit=None
                             break
@@ -161,14 +163,21 @@ class steric_check(trigonal_pyramid_distortion):
                     A,p2=self.apex,self.p2
                     self.container=np.append(self.container,[[phi,top,low_limit,A[0],A[1],A[2],p2[0],p2[1],p2[2]]],axis=0)
                 else:pass
+        #note here consider the first slab, y and z shiftment has been made properly
         data=np.rec.fromarrays([self.container[:,0],self.container[:,1],\
                                 self.container[:,2],self.container[:,3],\
-                                self.container[:,4],self.container[:,5],\
-                                self.container[:,6],self.container[:,7],\
-                                self.container[:,8]],names='phi,top,low,A1,A2,A3,P1,P2,P3')
+                                self.container[:,4]-0.7558,self.container[:,5]-7.3707,\
+                                self.container[:,6],self.container[:,7]-0.7558,\
+                                self.container[:,8]-7.3707],names='phi,top,low,A1,A2,A3,P1,P2,P3')
         data.sort(order=('phi','top','low'))
+        print "phi,top_angle,low_dt_limit,A_x,A_y,A_z,P2_x,P2_y,P3_z"
         if print_path!=None:
             np.savetxt(print_path,data,"%5.3f")
+            print np.loadtxt(print_path)
+        else:
+            np.savetxt('test',data,"%5.3f")
+            print np.loadtxt('test')
+            os.remove('test')
         
                     
                     
