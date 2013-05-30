@@ -201,8 +201,8 @@ class domain_creator_water():
             O_index1=np.where(domain.id==O_ids[0])[0][0]
             O_index2=np.where(domain.id==O_ids[1])[0][0]
         except:
-            domain.add_atom( O_ids[0], "O",  point1[0] ,point1[1], point1[2] ,0.32,     1.00000e+00 ,     1.00000e+00 )
-            domain.add_atom( O_ids[1], "O",  point2[0] ,point2[1], point2[2] ,0.32,     1.00000e+00 ,     1.00000e+00 )
+            domain.add_atom( O_ids[0], "O",  point1[0] ,point1[1], point1[2] ,4.,     1.00000e+00 ,     1.00000e+00 )
+            domain.add_atom( O_ids[1], "O",  point2[0] ,point2[1], point2[2] ,4.,     1.00000e+00 ,     1.00000e+00 )
         if O_index1!=None:
             domain.x[O_index1],domain.y[O_index1],domain.z[O_index1]=point1[0],point1[1],point1[2]
             domain.x[O_index2],domain.y[O_index2],domain.z[O_index2]=point2[0],point2[1],point2[2]
@@ -214,9 +214,9 @@ class domain_creator_water():
         #two oxygens have the same r value
         basis=np.array([5.038,5.434,7.3707])
         index_1=np.where(domain.id==sorbate_id)[0][0]
-        ref_x=domain.x[index_1]+domain.dx1[index_1]+domain.dx2[index_1]+domain.dx3[index_1]
-        ref_y=domain.y[index_1]+domain.dy1[index_1]+domain.dy2[index_1]+domain.dy3[index_1]
-        ref_z=domain.z[index_1]+domain.dz1[index_1]+domain.dz2[index_1]+domain.dz3[index_1]
+        ref_x=domain.x[index_1]
+        ref_y=domain.y[index_1]
+        ref_z=domain.z[index_1]
         sorbate_coor=np.array([ref_x,ref_y,ref_z])*basis
         x1,x2=r*np.cos(phi_list[0])*np.sin(theta_list[0]),r*np.cos(phi_list[1])*np.sin(theta_list[1])
         y1,y2=r*np.sin(phi_list[0])*np.sin(theta_list[0]),r*np.sin(phi_list[1])*np.sin(theta_list[1])

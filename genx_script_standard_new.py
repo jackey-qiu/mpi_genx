@@ -41,6 +41,7 @@ O_NUMBER=[[1]]#[[1,2]]means domain has two pb sorbate with one corresponding to 
 TOP_ANGLE=[[1.4]]#open angel for the surface complex structure
 PHI=[[5.]]#rotation angle for the surface complex structure
 R_S=[[2.25]]#vertical shiftment for monodentate mode
+R_TRI=[[2.]]#r value for tridentate mode
 MIRROR=False#consider mirror when adding sorbates
 
 ##pars for interfacial waters##
@@ -75,16 +76,11 @@ for i in range(DOMAIN_NUMBER):
     vars()['pb_list_domain'+str(int(i+1))+'b']=create_sorbate_ids(el='Pb',N=Pb_NUMBER[i],tag='_D'+str(int(i+1))+'B')
     vars()['HO_list_domain'+str(int(i+1))+'a']=create_sorbate_ids(el='HO',N=sum(O_NUMBER[i]),tag='_D'+str(int(i+1))+'A')
     vars()['HO_list_domain'+str(int(i+1))+'b']=create_sorbate_ids(el='HO',N=sum(O_NUMBER[i]),tag='_D'+str(int(i+1))+'B') 
-    if WATER_NUMBER[i]!=0:
-        vars()['Os_list_domain'+str(int(i+1))+'a']=create_sorbate_ids(el='Os',N=WATER_NUMBER[i],tag='_D'+str(int(i+1))+'A')
-        vars()['Os_list_domain'+str(int(i+1))+'b']=create_sorbate_ids(el='Os',N=WATER_NUMBER[i],tag='_D'+str(int(i+1))+'B')     
-        vars()['sorbate_ids_domain'+str(int(i+1))+'a']=vars()['pb_list_domain'+str(int(i+1))+'a']+vars()['HO_list_domain'+str(int(i+1))+'a']+vars()['Os_list_domain'+str(int(i+1))+'a']
-        vars()['sorbate_ids_domain'+str(int(i+1))+'b']=vars()['pb_list_domain'+str(int(i+1))+'b']+vars()['HO_list_domain'+str(int(i+1))+'b']+vars()['Os_list_domain'+str(int(i+1))+'b']
-        vars()['sorbate_els_domain'+str(int(i+1))]=['Pb']*Pb_NUMBER[i]+['O']*(sum(O_NUMBER[i])+WATER_NUMBER[i])
-    else:
-        vars()['sorbate_ids_domain'+str(int(i+1))+'a']=vars()['pb_list_domain'+str(int(i+1))+'a']+vars()['HO_list_domain'+str(int(i+1))+'a']
-        vars()['sorbate_ids_domain'+str(int(i+1))+'b']=vars()['pb_list_domain'+str(int(i+1))+'b']+vars()['HO_list_domain'+str(int(i+1))+'b']
-        vars()['sorbate_els_domain'+str(int(i+1))]=['Pb']*Pb_NUMBER[i]+['O']*(sum(O_NUMBER[i]))
+    vars()['Os_list_domain'+str(int(i+1))+'a']=create_sorbate_ids(el='Os',N=WATER_NUMBER[i],tag='_D'+str(int(i+1))+'A')
+    vars()['Os_list_domain'+str(int(i+1))+'b']=create_sorbate_ids(el='Os',N=WATER_NUMBER[i],tag='_D'+str(int(i+1))+'B')     
+    vars()['sorbate_ids_domain'+str(int(i+1))+'a']=vars()['pb_list_domain'+str(int(i+1))+'a']+vars()['HO_list_domain'+str(int(i+1))+'a']+vars()['Os_list_domain'+str(int(i+1))+'a']
+    vars()['sorbate_ids_domain'+str(int(i+1))+'b']=vars()['pb_list_domain'+str(int(i+1))+'b']+vars()['HO_list_domain'+str(int(i+1))+'b']+vars()['Os_list_domain'+str(int(i+1))+'b']
+    vars()['sorbate_els_domain'+str(int(i+1))]=['Pb']*Pb_NUMBER[i]+['O']*(sum(O_NUMBER[i])+WATER_NUMBER[i])
     
     ##set up group name container(discrete:single atom from each domain, sequence:double atoms at same layer from each domain)
     #atom ids for grouping(containerB must be the associated chemically equivalent atoms)
@@ -111,10 +107,27 @@ for i in range(DOMAIN_NUMBER):
     
     vars()['atm_list_'+str(int(i+1))+'A']=map(lambda x:x+'_D'+str(int(i+1))+'A',vars()['atm_list_A_'+str(int(DOMAIN[i]))])
     vars()['atm_list_'+str(int(i+1))+'B']=map(lambda x:x+'_D'+str(int(i+1))+'B',vars()['atm_list_B_'+str(int(DOMAIN[i]))])
-    vars()['match_order_'+str(int(i+1))+'A']=vars()['Os_list_domain'+str(int(i+1))+'a']+vars()['pb_list_domain'+str(int(i+1))+'a']+vars()['HO_list_domain'+str(int(i+1))+'a']+\
-                                             map(lambda x:x+'_D'+str(int(i+1))+'A',vars()['atm_list_A_'+str(int(DOMAIN[i]))])
-    vars()['match_order_'+str(int(i+1))+'B']=vars()['Os_list_domain'+str(int(i+1))+'b']+vars()['pb_list_domain'+str(int(i+1))+'b']+vars()['HO_list_domain'+str(int(i+1))+'b']+\
-                                             map(lambda x:x+'_D'+str(int(i+1))+'B',vars()['atm_list_B_'+str(int(DOMAIN[i]))])
+    
+    if (sum(O_NUMBER[i])!=0)&(WATER_NUMBER[i]!=0):#if have both water and oxygen sorbate
+        vars()['match_order_'+str(int(i+1))+'A']=vars()['Os_list_domain'+str(int(i+1))+'a']+vars()['pb_list_domain'+str(int(i+1))+'a']+vars()['HO_list_domain'+str(int(i+1))+'a']+\
+                                                 map(lambda x:x+'_D'+str(int(i+1))+'A',vars()['atm_list_A_'+str(int(DOMAIN[i]))])
+        vars()['match_order_'+str(int(i+1))+'B']=vars()['Os_list_domain'+str(int(i+1))+'b']+vars()['pb_list_domain'+str(int(i+1))+'b']+vars()['HO_list_domain'+str(int(i+1))+'b']+\
+                                                 map(lambda x:x+'_D'+str(int(i+1))+'B',vars()['atm_list_B_'+str(int(DOMAIN[i]))])
+    elif (sum(O_NUMBER[i])!=0)&(WATER_NUMBER[i]==0):#if no water in the model
+        vars()['match_order_'+str(int(i+1))+'A']=vars()['pb_list_domain'+str(int(i+1))+'a']+vars()['HO_list_domain'+str(int(i+1))+'a']+\
+                                                 map(lambda x:x+'_D'+str(int(i+1))+'A',vars()['atm_list_A_'+str(int(DOMAIN[i]))])
+        vars()['match_order_'+str(int(i+1))+'B']=vars()['pb_list_domain'+str(int(i+1))+'b']+vars()['HO_list_domain'+str(int(i+1))+'b']+\
+                                                 map(lambda x:x+'_D'+str(int(i+1))+'B',vars()['atm_list_B_'+str(int(DOMAIN[i]))])    
+    elif (sum(O_NUMBER[i])==0)&(WATER_NUMBER[i]!=0):#if no oxygen sorbate in the model
+        vars()['match_order_'+str(int(i+1))+'A']=vars()['pb_list_domain'+str(int(i+1))+'a']+vars()['Os_list_domain'+str(int(i+1))+'a']+\
+                                                 map(lambda x:x+'_D'+str(int(i+1))+'A',vars()['atm_list_A_'+str(int(DOMAIN[i]))])
+        vars()['match_order_'+str(int(i+1))+'B']=vars()['pb_list_domain'+str(int(i+1))+'b']+vars()['Os_list_domain'+str(int(i+1))+'b']+\
+                                                 map(lambda x:x+'_D'+str(int(i+1))+'B',vars()['atm_list_B_'+str(int(DOMAIN[i]))])
+    elif (sum(O_NUMBER[i])==0)&(WATER_NUMBER[i]==0):#if neither water nor oxygen sorbate
+        vars()['match_order_'+str(int(i+1))+'A']=vars()['pb_list_domain'+str(int(i+1))+'a']+\
+                                                 map(lambda x:x+'_D'+str(int(i+1))+'A',vars()['atm_list_A_'+str(int(DOMAIN[i]))])
+        vars()['match_order_'+str(int(i+1))+'B']=vars()['pb_list_domain'+str(int(i+1))+'b']+\
+                                                 map(lambda x:x+'_D'+str(int(i+1))+'B',vars()['atm_list_B_'+str(int(DOMAIN[i]))])
     
     ##the matching row Id information in the symfile, which will be used to group atms from chemically equivalent domain
     sym_file_Fe=np.array(['Fe1_2_0','Fe1_3_0','Fe1_4_0','Fe1_6_0','Fe1_8_0','Fe1_9_0','Fe1_10_0','Fe1_12_0',\
@@ -125,8 +138,19 @@ for i in range(DOMAIN_NUMBER):
                 'O1_1_1','O1_2_1','O1_3_1','O1_4_1','O1_5_1','O1_6_1','O1_7_1','O1_8_1','O1_9_1','O1_10_1','O1_11_1','O1_12_1'])
     
     vars()['sym_file_Fe_domain'+str(int(i+1))]=np.append(map(lambda x:x+'_D'+str(int(i+1))+'A',sym_file_Fe), map(lambda x:x+'_D'+str(int(i+1))+'B',sym_file_Fe[4:]))          
-    vars()['sym_file_O_domain'+str(int(i+1))]=np.append(map(lambda x:x+'_D'+str(int(i+1))+'A',vars()['sym_file_O_'+str(int(DOMAIN[i]))]), map(lambda x:x+'_D'+str(int(i+1))+'B',vars()['sym_file_O_'+str(int(DOMAIN[i]))][6:]))          
-    vars()['sym_file_O_domain'+str(int(i+1))]=np.append(vars()['HO_list_domain'+str(int(i+1))+'a']+vars()['Os_list_domain'+str(int(i+1))+'a']+vars()['HO_list_domain'+str(int(i+1))+'b']+vars()['Os_list_domain'+str(int(i+1))+'b'],vars()['sym_file_O_domain'+str(int(i+1))])
+    if (sum(O_NUMBER[i])!=0)&(WATER_NUMBER[i]!=0):#if have both water and oxygen sorbate
+        vars()['sym_file_O_domain'+str(int(i+1))]=np.append(map(lambda x:x+'_D'+str(int(i+1))+'A',vars()['sym_file_O_'+str(int(DOMAIN[i]))]), map(lambda x:x+'_D'+str(int(i+1))+'B',vars()['sym_file_O_'+str(int(DOMAIN[i]))][6:]))          
+        vars()['sym_file_O_domain'+str(int(i+1))]=np.append(vars()['HO_list_domain'+str(int(i+1))+'a']+vars()['Os_list_domain'+str(int(i+1))+'a']+vars()['HO_list_domain'+str(int(i+1))+'b']+vars()['Os_list_domain'+str(int(i+1))+'b'],vars()['sym_file_O_domain'+str(int(i+1))])
+    elif (sum(O_NUMBER[i])!=0)&(WATER_NUMBER[i]==0):#if no water in the model
+        vars()['sym_file_O_domain'+str(int(i+1))]=np.append(map(lambda x:x+'_D'+str(int(i+1))+'A',vars()['sym_file_O_'+str(int(DOMAIN[i]))]), map(lambda x:x+'_D'+str(int(i+1))+'B',vars()['sym_file_O_'+str(int(DOMAIN[i]))][6:]))          
+        vars()['sym_file_O_domain'+str(int(i+1))]=np.append(vars()['HO_list_domain'+str(int(i+1))+'a']+vars()['HO_list_domain'+str(int(i+1))+'b'],vars()['sym_file_O_domain'+str(int(i+1))])
+    elif (sum(O_NUMBER[i])==0)&(WATER_NUMBER[i]!=0):#if no oxygen sorbate in the model
+        vars()['sym_file_O_domain'+str(int(i+1))]=np.append(map(lambda x:x+'_D'+str(int(i+1))+'A',vars()['sym_file_O_'+str(int(DOMAIN[i]))]), map(lambda x:x+'_D'+str(int(i+1))+'B',vars()['sym_file_O_'+str(int(DOMAIN[i]))][6:]))          
+        vars()['sym_file_O_domain'+str(int(i+1))]=np.append(vars()['Os_list_domain'+str(int(i+1))+'a']+vars()['Os_list_domain'+str(int(i+1))+'b'],vars()['sym_file_O_domain'+str(int(i+1))])
+    elif (sum(O_NUMBER[i])==0)&(WATER_NUMBER[i]==0):#if neither water nor oxygen sorbate
+        vars()['sym_file_O_domain'+str(int(i+1))]=np.append(map(lambda x:x+'_D'+str(int(i+1))+'A',vars()['sym_file_O_'+str(int(DOMAIN[i]))]), map(lambda x:x+'_D'+str(int(i+1))+'B',vars()['sym_file_O_'+str(int(DOMAIN[i]))][6:]))          
+        vars()['sym_file_O_domain'+str(int(i+1))]=vars()['sym_file_O_domain'+str(int(i+1))]
+
     vars()['sym_file_Pb_domain'+str(int(i+1))]=np.array(vars()['pb_list_domain'+str(int(i+1))+'a']+vars()['pb_list_domain'+str(int(i+1))+'b'])
     vars()['id_match_in_sym_domain'+str(int(i+1))]={'Fe':vars()['sym_file_Fe_domain'+str(int(i+1))],'O':vars()['sym_file_O_domain'+str(int(i+1))],'Pb':vars()['sym_file_Pb_domain'+str(int(i+1))]}
 
@@ -228,6 +252,23 @@ for i in range(DOMAIN_NUMBER):
             M=len(O_id)
             vars()['gp_sorbates_set'+str(j+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*N+[vars()['domain'+str(int(i+1))+'B']]*N,atom_ids=sorbate_set_ids)
             vars()['gp_HO_set'+str(j+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*M+[vars()['domain'+str(int(i+1))+'B']]*M,atom_ids=HO_set_ids)
+        elif len(Pb_ATTACH_ATOM[i][j])==3:#tridentate case (no oxygen sorbate here considering it is a trigonal pyramid structure)
+            ids=[Pb_ATTACH_ATOM[i][j][0]+'_D'+str(int(i+1))+'A',Pb_ATTACH_ATOM[i][j][1]+'_D'+str(int(i+1))+'A',Pb_ATTACH_ATOM[i][j][2]+'_D'+str(int(i+1))+'A']
+            offset=Pb_ATTACH_ATOM_OFFSET[i][j]
+            pb_id=vars()['pb_list_domain'+str(int(i+1))+'a'][j]
+            sorbate_coors=vars()['domain_class_'+str(int(i+1))].adding_pb_share_triple3(domain=vars()['domain'+str(int(i+1))+'A'],r=R_TRI[i][j],attach_atm_ids=ids,offset=offset,pb_id=pb_id)
+            pb_coors_a.append(sorbate_coors)
+            pb_id_B=vars()['pb_list_domain'+str(int(i+1))+'b'][j]
+            #now put on sorbate on the symmetrically related domain
+            sorbate_ids=[pb_id_B]
+            sorbate_els=['Pb']
+            add_atom(domain=vars()['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a)*[-1,1,1]-[-1.,0.06955,0.5],ids=sorbate_ids,els=sorbate_els)
+            #grouping sorbates (each set of Pb and HO, set the occupancy equivalent during fitting, looks like gp_sorbates_set1_D1)
+            #also group the oxygen sorbate to set equivalent u during fitting (looks like gp_HO_set1_D1)
+            sorbate_set_ids=[pb_id]+[pb_id_B]
+            N=len(sorbate_set_ids)/2
+            vars()['gp_sorbates_set'+str(j+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*N+[vars()['domain'+str(int(i+1))+'B']]*N,atom_ids=sorbate_set_ids)
+
     if WATER_NUMBER[i]!=0:#add water molecules if any
         for jj in range(WATER_NUMBER[i]/2):#note will add water pair (two oxygens) each time, and you can't add single water 
             O_ids_a=vars()['Os_list_domain'+str(int(i+1))+'a'][jj*2:jj*2+2]

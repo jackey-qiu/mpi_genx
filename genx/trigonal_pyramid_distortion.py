@@ -17,7 +17,7 @@ f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
 f3=lambda p1,p2:(1./f2(p1,p2))*(p2-p1)+p1
 #refer the the associated ppt file when read the comments
 
-basis=np.array([5.038,5.474,7.3707])
+basis=np.array([5.038,5.434,7.3707])
 #atoms to be checked for distance
 atms_cell=[[0.653,1.1121,1.903],[0.847,0.6121,1.903],[0.306,0.744,1.75],[0.194,0.243,1.75],\
       [0.5,1.019,1.645],[0,0.518,1.645],[0.847,0.876,1.597],[0.653,0.375,1.597]]

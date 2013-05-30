@@ -16,10 +16,14 @@ f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
 #direction of the basis is pointing from p1 to p2
 f3=lambda p1,p2:(1./f2(p1,p2))*(p2-p1)+p1
 #refer the the associated ppt file when read the comments
-basis=[5.038,5.474,7.3707]
+basis=[5.038,5.434,7.3707]
 #atoms to be checked for distance
-atms_cell=[[0.653,1.112,1.903],[0.847,0.612,1.903],[0.306,0.744,1.75],[0.194,0.243,1.75],\
-      [0.5,1.019,1.645],[0,0.518,1.645],[0.847,0.876,1.597],[0.653,0.375,1.597]]
+#for half layer
+#atms_cell=[[0.653,1.112,1.903],[0.847,0.612,1.903],[0.306,0.744,1.75],[0.194,0.243,1.75],\
+      #[0.5,1.019,1.645],[0,0.518,1.645],[0.847,0.876,1.597],[0.653,0.375,1.597]]
+#for full layer
+atms_cell=[[0.153,1.062,2.113],[0.347,0.563,2.113],[0.653,1.112,1.903],[0.847,0.612,1.903],[0,0.9691,1.855],[0.5,0.469,1.855],[0.306,0.744,1.75],[0.194,0.243,1.75],\
+           [0.5,1.019,1.645],[0,0.518,1.645],[0.847,0.876,1.597],[0.653,0.375,1.597]]
 atms=np.append(np.array(atms_cell),np.array(atms_cell)+[-1,0,0],axis=0)
 atms=np.append(atms,np.array(atms_cell)+[1,0,0],axis=0)
 atms=np.append(atms,np.array(atms_cell)+[0,-1,0],axis=0)

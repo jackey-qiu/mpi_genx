@@ -165,10 +165,7 @@ class domain_creator_sorbate():
             elif symbol==None:return np.array([0.,0.,0.])
 
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
-        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0]+domain.dx1[p_O1_index][0]+domain.dx2[p_O1_index][0]+domain.dx3[p_O1_index][0]+domain.dx4[p_O1_index][0],\
-                       domain.y[p_O1_index][0]+domain.dy1[p_O1_index][0]+domain.dy2[p_O1_index][0]+domain.dy3[p_O1_index][0]+domain.dy4[p_O1_index][0],\
-                       domain.z[p_O1_index][0]+domain.dz1[p_O1_index][0]+domain.dz2[p_O1_index][0]+domain.dz3[p_O1_index][0]+domain.dz4[p_O1_index][0]])\
-                       +_translate_offset_symbols(symbol)
+        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0],domain.y[p_O1_index][0],domain.z[p_O1_index][0]])+_translate_offset_symbols(symbol)
         #try to calculate the center point on the plane, two linear equations based on distance equivalence,one based on point on the plane
         p_O1=pt_ct(domain,p_O1_index,offset[0])
         p_O2=pt_ct(domain,p_O2_index,offset[1])
@@ -210,11 +207,7 @@ class domain_creator_sorbate():
             elif symbol==None:return np.array([0.,0.,0.])
 
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
-        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0]+domain.dx1[p_O1_index][0]+domain.dx2[p_O1_index][0]+domain.dx3[p_O1_index][0]+domain.dx4[p_O1_index][0],\
-                       domain.y[p_O1_index][0]+domain.dy1[p_O1_index][0]+domain.dy2[p_O1_index][0]+domain.dy3[p_O1_index][0]+domain.dy4[p_O1_index][0],\
-                       domain.z[p_O1_index][0]+domain.dz1[p_O1_index][0]+domain.dz2[p_O1_index][0]+domain.dz3[p_O1_index][0]+domain.dz4[p_O1_index][0]])\
-                       +_translate_offset_symbols(symbol)
-        #try to calculate the center point on the plane, two linear equations based on distance equivalence,one based on point on the plane
+        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0],domain.y[p_O1_index][0],domain.z[p_O1_index][0]])+_translate_offset_symbols(symbol)        #try to calculate the center point on the plane, two linear equations based on distance equivalence,one based on point on the plane
         p_O1=pt_ct(domain,p_O1_index,offset[0])
         p_O2=pt_ct(domain,p_O2_index,offset[1])
         p_O3=pt_ct(domain,p_O3_index,offset[2])
@@ -248,6 +241,7 @@ class domain_creator_sorbate():
         #similar to adding_pb_share_triple2, but no body center, the center point on the plane determined by attach atoms will be the starting point1
         #the pb will be added on the extention line of normal vector (normal to the plane) starting at starting point
         #the distance bt pb and the plane is specified by r, which is in unit of angstrom
+        #make sure the order of ids are in anticlock otherwise the sorbate will go inside the bulk structure
         
         p_O1_index=np.where(domain.id==attach_atm_ids[0])
         p_O2_index=np.where(domain.id==attach_atm_ids[1])
@@ -262,10 +256,7 @@ class domain_creator_sorbate():
             elif symbol==None:return np.array([0.,0.,0.])
 
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
-        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0]+domain.dx1[p_O1_index][0]+domain.dx2[p_O1_index][0]+domain.dx3[p_O1_index][0]+domain.dx4[p_O1_index][0],\
-                       domain.y[p_O1_index][0]+domain.dy1[p_O1_index][0]+domain.dy2[p_O1_index][0]+domain.dy3[p_O1_index][0]+domain.dy4[p_O1_index][0],\
-                       domain.z[p_O1_index][0]+domain.dz1[p_O1_index][0]+domain.dz2[p_O1_index][0]+domain.dz3[p_O1_index][0]+domain.dz4[p_O1_index][0]])\
-                       +_translate_offset_symbols(symbol)
+        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0],domain.y[p_O1_index][0],domain.z[p_O1_index][0]])+_translate_offset_symbols(symbol)
         #try to calculate the center point on the plane, two linear equations based on distance equivalence,one based on point on the plane
         p_O1=pt_ct(domain,p_O1_index,offset[0])
         p_O2=pt_ct(domain,p_O2_index,offset[1])
@@ -291,7 +282,7 @@ class domain_creator_sorbate():
             domain.y[sorbate_index]=sorbate_v[1]
             domain.z[sorbate_index]=sorbate_v[2]
         #return anstrom
-        return sorbate_v*basis
+        return sorbate_v
      
     def adding_share_triple4(self,domain,top_angle=1.,attach_atm_ids_ref=['id1','id2'],attach_atm_id_third=['id3'],offset=[None,None,None],pb_id='pb_id'):
         #here only consider the angle distortion specified by top_angle (range from 0 to 120 dg), and no length distortion, so the base is a equilayer triangle
@@ -316,10 +307,7 @@ class domain_creator_sorbate():
             elif symbol==None:return np.array([0.,0.,0.])
 
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
-        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0]+domain.dx1[p_O1_index][0]+domain.dx2[p_O1_index][0]+domain.dx3[p_O1_index][0]+domain.dx4[p_O1_index][0],\
-                       domain.y[p_O1_index][0]+domain.dy1[p_O1_index][0]+domain.dy2[p_O1_index][0]+domain.dy3[p_O1_index][0]+domain.dy4[p_O1_index][0],\
-                       domain.z[p_O1_index][0]+domain.dz1[p_O1_index][0]+domain.dz2[p_O1_index][0]+domain.dz3[p_O1_index][0]+domain.dz4[p_O1_index][0]])\
-                       +_translate_offset_symbols(symbol)
+        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0],domain.y[p_O1_index][0],domain.z[p_O1_index][0]])+_translate_offset_symbols(symbol)
         
         pt_ct2=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0],\
                        domain.y[p_O1_index][0],\
@@ -383,10 +371,7 @@ class domain_creator_sorbate():
             elif symbol==None:return np.array([0.,0.,0.])
 
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
-        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0]+domain.dx1[p_O1_index][0]+domain.dx2[p_O1_index][0]+domain.dx3[p_O1_index][0]+domain.dx4[p_O1_index][0],\
-                       domain.y[p_O1_index][0]+domain.dy1[p_O1_index][0]+domain.dy2[p_O1_index][0]+domain.dy3[p_O1_index][0]+domain.dy4[p_O1_index][0],\
-                       domain.z[p_O1_index][0]+domain.dz1[p_O1_index][0]+domain.dz2[p_O1_index][0]+domain.dz3[p_O1_index][0]+domain.dz4[p_O1_index][0]])\
-                       +_translate_offset_symbols(symbol)
+        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0],domain.y[p_O1_index][0],domain.z[p_O1_index][0]])+_translate_offset_symbols(symbol)
         p_O1=pt_ct(domain,p_O1_index,offset[0])
         p_O2=pt_ct(domain,p_O2_index,offset[1])
         body_center=pt_ct(domain,body_center_index,offset[2])
@@ -422,15 +407,15 @@ class domain_creator_sorbate():
             elif symbol==None:return np.array([0.,0.,0.])
 
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
-        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0]+domain.dx1[p_O1_index][0]+domain.dx2[p_O1_index][0]+domain.dx3[p_O1_index][0]+domain.dx4[p_O1_index][0],\
-                       domain.y[p_O1_index][0]+domain.dy1[p_O1_index][0]+domain.dy2[p_O1_index][0]+domain.dy3[p_O1_index][0]+domain.dy4[p_O1_index][0],\
-                       domain.z[p_O1_index][0]+domain.dz1[p_O1_index][0]+domain.dz2[p_O1_index][0]+domain.dz3[p_O1_index][0]+domain.dz4[p_O1_index][0]])\
-                       +_translate_offset_symbols(symbol)
+        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0],domain.y[p_O1_index][0],domain.z[p_O1_index][0]])+_translate_offset_symbols(symbol)
         p_O1=pt_ct(domain,p_O1_index,offset[0])*basis
         p_O2=pt_ct(domain,p_O2_index,offset[1])*basis
+        #print "O1",p_O1
+        #print "O2",p_O2
         pyramid_distortion=trigonal_pyramid_distortion.trigonal_pyramid_distortion(p0=p_O1,p1=p_O2,top_angle=top_angle,len_offset=edge_offset)
         pyramid_distortion.all_in_all(switch=switch,phi=phi,mirror=mirror)
-        
+        #print "apex",pyramid_distortion.apex-[0,0.75587,7.3707]
+        #print "p2",pyramid_distortion.p2-[0,0.75587,7.3707]
         def _add_sorbate(domain=None,id_sorbate=None,el='Pb',sorbate_v=[]):
             sorbate_index=None
             try:
@@ -460,10 +445,7 @@ class domain_creator_sorbate():
             elif symbol==None:return np.array([0.,0.,0.])
 
         f2=lambda p1,p2:np.sqrt(np.sum((p1-p2)**2))
-        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0]+domain.dx1[p_O1_index][0]+domain.dx2[p_O1_index][0]+domain.dx3[p_O1_index][0]+domain.dx4[p_O1_index][0],\
-                       domain.y[p_O1_index][0]+domain.dy1[p_O1_index][0]+domain.dy2[p_O1_index][0]+domain.dy3[p_O1_index][0]+domain.dy4[p_O1_index][0],\
-                       domain.z[p_O1_index][0]+domain.dz1[p_O1_index][0]+domain.dz2[p_O1_index][0]+domain.dz3[p_O1_index][0]+domain.dz4[p_O1_index][0]])\
-                       +_translate_offset_symbols(symbol)
+        pt_ct=lambda domain,p_O1_index,symbol:np.array([domain.x[p_O1_index][0],domain.y[p_O1_index][0],domain.z[p_O1_index][0]])+_translate_offset_symbols(symbol)
         p_O1=pt_ct(domain,p_O1_index,offset[0])*basis
         apex=p_O1+[0,0,r]
         pyramid=trigonal_pyramid_known_apex.trigonal_pyramid_two_point(apex=apex,p0=p_O1,top_angle=top_angle,phi=phi,mirror=mirror)
