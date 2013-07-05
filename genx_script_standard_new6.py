@@ -27,11 +27,11 @@ from domain_creator import add_atom,print_data,create_list,add_atom_in_slab,\
 '''
 the forms of ids and group names 
 ###########atm ids################
-sorbate: Pb1_D1A, Pb2_D2B, HO1_D1A
+sorbate: Sb1_D1A, Sb2_D2B, HO1_D1A
 water: Os1_D1A
 surf atms: O1_1_0_D1A (half layer), O1_1_1_D1A(full layer atms)
 ############group names###########
-gp_Pb1_D1(discrete grouping for sorbate, group u dx dy dz)
+gp_Sb1_D1(discrete grouping for sorbate, group u dx dy dz)
 gp_O1O7_D1(discrete grouping for surface atms, group dx dy in symmetry)
 gp_sorbates_set1_D1(discrete grouping for each set of sorbates (O and metal), group oc)
 gp_HO_set1_D1(discrete grouping for each set of oxygen sorbates, group u)
@@ -40,7 +40,7 @@ gp_O1O2_O7O8_D1(sequence grouping for u, oc and dz)
 
 some print samples
 #print domain_creator.extract_coor(domain1A,'O1_1_0_D1A')
-#print domain_creator.extract_coor(domain1B,'Pb1_D1B')
+#print domain_creator.extract_coor(domain1B,'Sb1_D1B')
 #print_data(N_sorbate=4,N_atm=40,domain=domain1A,z_shift=1,save_file='D://model.xyz')
 #print domain_class_1.cal_bond_valence1(domain1A,'Pb1_D1A',3,False)
 '''
@@ -50,16 +50,17 @@ batch_path_head='/u1/uaf/cqiu/batchfile/'
 
 ##pars for sorbates##
 Sb_NUMBER=[1]#domain1 has 1 sb, sencond item represent the number of Sb in second domain
-Sb_ATTACH_ATOM=[[['O1_1_0','O1_2_0','O1_3_0']]]#The initial lead postion (first one) for domain1 will form a bidentate mode with O1 AND O2
-Sb_ATTACH_ATOM_OFFSET=[[[None,None,None]]]#consider the unit offsets of the above two atms
-O_NUMBER=[[3]]#[[1,2]]means domain has two sb sorbate with one corresponding to monodentate the other one to bidentate
+Sb_ATTACH_ATOM=[[['O1_1_0','O1_2_0','O1_3_0']]]#one item means monodentate, two bidentate and three tridentate
+Sb_ATTACH_ATOM_OFFSET=[[[None,None,None]]]#consider the unit offsets of the above atms
+O_NUMBER=[[3]]#the number must fit in the octahedral configuration (6 oxygen ligands in total including the anchors)
+##adsorption configuration pars##
+#monodentate#
+R_S=[[1],[1]]#vertical shiftment for monodentate mode
+#bidentate#
 THETA=[[1.4]]#open angel for the surface complex structure
 PHI=[[np.pi/2]]#rotation angle for the surface complex structure
+#note this FLAG shared by bidentate and tridentate mode (bidentate:'off_center' or 'cross_center') (tridentate: 'right_triangle' or 'regular_triangle')
 FLAG=[['off_center']]
-ED_FLAG=[['type1']]
-R_S=[[1],[1]]#vertical shiftment for monodentate mode
-R_TRI=[[2.]]#r value for tridentate mode
-MIRROR=False#consider mirror when adding sorbates
 
 ##pars for interfacial waters##
 WATER_NUMBER=[2,2]#must be even number considering 2 atoms each layer

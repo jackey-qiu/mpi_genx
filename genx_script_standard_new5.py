@@ -49,14 +49,17 @@ batch_path_head='/u1/uaf/cqiu/batchfile/'
 Pb_NUMBER=[1]#domain1 has 1 pb, sencond item represent the number of Pb in second domain
 Pb_ATTACH_ATOM=[[['O1_1_0','O1_2_0','O1_3_0']]]#The initial lead postion (first one) for domain1 will form a bidentate mode with O1 AND O2
 Pb_ATTACH_ATOM_OFFSET=[[[None,None,None]]]#consider the unit offsets of the above two atms
-O_NUMBER=[[1]]#[[1,2]]means domain has two pb sorbate with one corresponding to monodentate the other one to bidentate
-THETA=[[1.4]]#open angel for the surface complex structure
-PHI=[[np.pi/2]]#rotation angle for the surface complex structure
-FLAG=[['1_1+0_1']]
-ED_FLAG=[['type2']]
-R_S=[[2]]#vertical shiftment for monodentate mode
-R_TRI=[[2.]]#r value for tridentate mode
-MIRROR=False#consider mirror when adding sorbates
+O_NUMBER=[[1]]#the number must fit in the trigonla bipyramid configuration (4 oxygen ligands in total including the anchors)
+##adsorption configuration pars##
+#monodentate mode#
+R_S=[[2]]#vertical shiftment for monodentate mode (use R value in grid)
+#bidentate mode#
+THETA=[[1.4]]#open angel for the surface complex structure (the final theta value are defined in the grid table)
+PHI=[[np.pi/2]]#rotation angle for the surface complex structure (final phi value in grid table)
+FLAG=[['1_1+0_1']]#flag for bidentate mode (1_1+0_1 is more steric feasible than other cases)
+ED_FLAG=[['type2']]#extend_flag for bidentate mode
+MIRROR=False#mirror switch for bidentate mode 
+#note no pars for tridentate mode#
 
 ##pars for interfacial waters##
 WATER_NUMBER=[2,2]#must be even number considering 2 atoms each layer
