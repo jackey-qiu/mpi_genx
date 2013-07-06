@@ -42,7 +42,7 @@ some print samples
 #print domain_creator.extract_coor(domain1A,'O1_1_0_D1A')
 #print domain_creator.extract_coor(domain1B,'Sb1_D1B')
 #print_data(N_sorbate=4,N_atm=40,domain=domain1A,z_shift=1,save_file='D://model.xyz')
-#print domain_class_1.cal_bond_valence1(domain1A,'Pb1_D1A',3,False)
+#print domain_class_1.cal_bond_valence1(domain1A,'Sb1_D1A',3,False)
 '''
 ###############################################global vars##################################################
 ##file paths##
