@@ -67,6 +67,8 @@ def set_coor(domain,id,coor):
     domain.x[index]=coor[0]
     domain.y[index]=coor[1]
     domain.z[index]=coor[2]
+
+            
 #grid matching library for considering offset, x y both from -0.3 to 1.2 with each step of 0.5
 #match like 1  2  3
 #           6  5  4

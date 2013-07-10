@@ -4,6 +4,7 @@ from models.utils import UserVars
 import numpy as np
 from operator import mul
 from numpy.linalg import inv
+from random import uniform
 import sys
 sys.path.append('D:\\Programming codes\\geometry codes\\polyhedra-geometry')
 import hexahedra,hexahedra_distortion,tetrahedra,octahedra,tetrahedra_edge_distortion,trigonal_pyramid_distortion,trigonal_pyramid_distortion_shareface,trigonal_pyramid_distortion2,trigonal_pyramid_distortion3,trigonal_pyramid_distortion4
@@ -66,6 +67,26 @@ def set_coor(domain,id,coor):
     domain.x[index]=coor[0]
     domain.y[index]=coor[1]
     domain.z[index]=coor[2]
+    
+#set sorbate coors to two symmetrical realated domains (rcut hematite in this case)
+#domains:two items with symmetry related to each other
+#ids:two items, first item is a list of ids corresponding to first domain, and second item to the second domain
+#els:a list of elements with order corresponding to each item of the ids
+#grids: fractional coordinates of sorbates for first domain
+def set_coor_grid(domains=['domain1A','domain1B'],ids=[[],[]],els=[],grids=[[0.3,0.5,1.2]],random_switch=False):
+    grids=grids
+    if random_switch==True:
+        grids=[[uniform(0,1),uniform(0,1),uniform(2,2.5)]for el in els]
+    for i in range(len(els)):
+        index=None
+        try:
+            index=np.where(domains[0].id==ids[0][i])[0][0]
+        except:
+            domains[0].add_atom( ids[0][i], els[i],  grids[i][0] ,grids[i][1], grids[i][2] ,0.5,     1.00000e+00 ,     1.00000e+00 )
+            domains[1].add_atom( ids[1][i], els[i],  1-grids[i][0] ,grids[i][1]-0.06955, grids[i][2]-0.5 ,0.5,     1.00000e+00 ,     1.00000e+00 )
+        if index!=None:
+            domain[0].x[index],domain[0].y[index],domain[0].z[index]=grids[i][0],grids[i][1],grids[i][2]
+            domain[1].x[index],domain[1].y[index],domain[1].z[index]=1-grids[i][0],grids[i][1]-0.06955,grids[i][2]-0.5
 #grid matching library for considering offset, x y both from -0.3 to 1.2 with each step of 0.5
 #match like 1  2  3
 #           6  5  4
@@ -106,7 +127,24 @@ def print_data(N_sorbate=4,N_atm=40,domain='',z_shift=1,save_file='D://model.xyz
         s = '%-5s   %7.5e   %7.5e   %7.5e\n' % (data[3][i],data[0][i]*5.038,(data[1][i]-0.1391)*5.434,(data[2][i]-z_shift)*7.3707)
         f.write(s)
     f.close()
- 
+
+#function to export ref fit file (a connection between GenX output and ROD input)
+#NOTE:only print out surface atoms, and no sorbates
+def print_data_for_ROD(N_atm=40,domain='',save_file='D:\\Google Drive\\useful codes\\half_layer_GenX_s1.txt'):
+    data=domain._extract_values()
+    index_all=range(len(data[0]))
+    index=index_all[0:40]
+    f=open(save_file,'w')
+    f2=open(save_file[:-6]+'s2.txt','w')
+    for i in index:
+        s = '%s\t%6.5f\t%i\t%i\t%i\t%i\t%6.5f\t%i\t%i\t%i\t%i\t%6.5f\t%i\t%i\t%i\n' % (data[3][i],data[0][i],1,0,0,0,data[1][i],1,0,0,0,data[2][i],0,0,0)
+        f.write(s)
+    for i in index_all[0:30]:
+        s = '%s\t%6.5f\t%i\t%i\t%i\t%i\t%6.5f\t%i\t%i\t%i\t%i\t%6.5f\t%i\t%i\t%i\n' % (data[3][i],1.-data[0][i],-1,0,0,0,data[1][i]-0.1391/2.,1,0,0,0,data[2][i]-0.5,0,0,0)
+        f2.write(s)
+    f.close()
+    f2.close()
+    
 def create_list(ids,off_set_begin,start_N):
     ids_processed=[[],[]]
     off_set=[None,'+x','-x','+y','-y','+x+y','+x-y','-x+y','-x-y']

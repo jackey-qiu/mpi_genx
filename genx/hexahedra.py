@@ -388,7 +388,7 @@ class share_corner2(share_edge):
         self.corner=corner
         self.p1=self.corner+[0,0,r*2]
         self.edge=np.append(self.corner[np.newaxis,:],self.p1[np.newaxis,:],axis=0)
-        self.all_in_all(phi=0.,ref_p=None,flag='2_0+0_1')
+        self.all_in_all(phi=phi,ref_p=None,flag='2_0+0_1')
 #this steric check is specifically for the share_corner2        
 class steric_check2(share_corner2):
     def __init__(self,p0=anchor1,r=2.0,cutting_limit=2.5):
