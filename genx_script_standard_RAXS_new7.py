@@ -25,8 +25,7 @@ from domain_creator import add_atom,print_data,create_list,add_atom_in_slab,set_
 ##unique in version 7##
 #different from all previous version, in this version the sorbates are put on the surface without considering possilbe geometrical
 #configuration (I call it brute force mode)
-#In this version you only have to specify the number of sorbates and the coordinates, which will be randomly generated (0-1,0-1,2-2.5)
-#if the USE_RANDOM is set to True (each time you apply the simulation, the result will be different) 
+#In this version you only have to specify the number of sorbates and the coordinates
 '''
 the forms of ids and group names 
 ###########atm ids################
@@ -56,13 +55,12 @@ METAL='Pb'
 Pb_NUMBER=[1]#domain1 has 1 pb, sencond item represent the number of Pb in second domain
 O_NUMBER=[[1]]#the number must fit in the trigonla bipyramid configuration (4 oxygen ligands in total including the anchors)
 SORBATE_COORS=[[[0,0.2,1.3],[0.2,0.3,1.5]]]
-USE_RANDOM=False
 
 ##pars for interfacial waters##
-WATER_NUMBER=[2,2]#must be even number considering 2 atoms each layer
-V_SHIFT=[[2],[2]]#vertical shiftment of water molecules, in unit of angstrom,two items each if consider two water pair
-R=[[3],[3]]#distance bw two waters at each layer in unit of angstrom
-ALPHA=[[3],[3]]#alpha angle used to cal the pos of water molecule
+WATER_NUMBER=[0]#must be even number considering 2 atoms each layer
+V_SHIFT=[[2]]#vertical shiftment of water molecules, in unit of angstrom,two items each if consider two water pair
+R=[[3]]#distance bw two waters at each layer in unit of angstrom
+ALPHA=[[3]]#alpha angle used to cal the pos of water molecule
 
 ##chemically different domain type##
 DOMAIN=[1]#1 for half layer and 2 for full layer
@@ -223,8 +221,7 @@ for i in range(DOMAIN_NUMBER):
         sorbate_id_a=[vars()['pb_list_domain'+str(int(i+1))+'a'][j]]+vars()['HO_list_domain'+str(int(i+1))+'a'][O_index[j]:O_index[j+1]]
         sorbate_id_b=[vars()['pb_list_domain'+str(int(i+1))+'b'][j]]+vars()['HO_list_domain'+str(int(i+1))+'b'][O_index[j]:O_index[j+1]]
         els=[METAL]+['O']*(len(sorbate_id_a)-1)
-        grids=[]
-        if USE_RANDOM==False:grids=SORBATE_COORS[i]
+        grids=SORBATE_COORS[i]
         set_coor_grid(domains,[sorbate_id_a,sorbate_id_b],els,grids,USE_RANDOM)
         #grouping sorbates (each set of Pb and HO, set the occupancy equivalent during fitting, looks like gp_sorbates_set1_D1)
         #also group the oxygen sorbate to set equivalent u during fitting (looks like gp_HO_set1_D1)

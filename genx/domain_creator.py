@@ -73,10 +73,8 @@ def set_coor(domain,id,coor):
 #ids:two items, first item is a list of ids corresponding to first domain, and second item to the second domain
 #els:a list of elements with order corresponding to each item of the ids
 #grids: fractional coordinates of sorbates for first domain
-def set_coor_grid(domains=['domain1A','domain1B'],ids=[[],[]],els=[],grids=[[0.3,0.5,1.2]],random_switch=False):
-    grids=grids
-    if random_switch==True:
-        grids=[[uniform(0,1),uniform(0,1),uniform(2,2.5)]for el in els]
+def set_coor_grid(domains=['domain1A','domain1B'],ids=[[],[]],els=[],grids=[[0.3,0.5,1.2]]):
+
     for i in range(len(els)):
         index=None
         try:
