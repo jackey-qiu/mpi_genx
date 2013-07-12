@@ -222,7 +222,7 @@ for i in range(DOMAIN_NUMBER):
         sorbate_id_b=[vars()['pb_list_domain'+str(int(i+1))+'b'][j]]+vars()['HO_list_domain'+str(int(i+1))+'b'][O_index[j]:O_index[j+1]]
         els=[METAL]+['O']*(len(sorbate_id_a)-1)
         grids=SORBATE_COORS[i]
-        set_coor_grid(domains,[sorbate_id_a,sorbate_id_b],els,grids,USE_RANDOM)
+        set_coor_grid(domains,[sorbate_id_a,sorbate_id_b],els,grids)
         #grouping sorbates (each set of Pb and HO, set the occupancy equivalent during fitting, looks like gp_sorbates_set1_D1)
         #also group the oxygen sorbate to set equivalent u during fitting (looks like gp_HO_set1_D1)
         sorbate_set_ids=sorbate_id_a+sorbate_id_b

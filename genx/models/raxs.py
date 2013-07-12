@@ -257,7 +257,7 @@ class Sample:
         x, y, z, u, oc, el = self._surf_pars(slabs)
         f=self._get_f(el, dinv)
         shape=f.shape
-        f_offset=np.zeros(shape=shape)
+        f_offset=np.zeros(shape=shape)+0J
         for i in range(shape[0]):
             for j in range(shape[1]):
                 if res_el==el[j]:
