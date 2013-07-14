@@ -178,7 +178,12 @@ except:
     #print "Could not find additional custom-defined FOM functions."
     #print "Nothing imported. All standard FOM functions are available."
 
-    
+bg_peaks={'00':[0,2,4,6],'02':[-8.2782,-6.2782,-4.2782,-2.2782,-0.2782,1.7218,3.7218,5.7218,7.7218],\
+          '10':[-7,-5.0,-3.0,3.0,5.0,7],'11':[-6.1391,-4.1391,-2.1391,-0.1391,1.8609,3.8609,5.8609],\
+          '20':[-8,-6,-4,-2,0,2,4,6,8],'22':[-8.2782,-6.2782,-4.2782,-2.2782,-0.2782,1.7218,3.7218,5.7218,7.7218],\
+          '30':[-9,-7,-5,-1,1,5,7,9],'2-1':[-8.8609,-6.8609,-4.8609,-0.8609,3.1391,5.1391,7.1391],\
+          '21':[-7.1391,-5.1391,-3.1391,0.8609,4.8609,6.8609]}
+          
 #==============================================================================
 # BEGIN FOM function defintions
 
@@ -266,11 +271,47 @@ Norm.__div_dof__ = True
 def chi2bars(simulations, data):
     ''' Weighted chi squared
     '''
+    def _weight_fom(offset_list=[]):
+        wt_array=[]
+        for offset in offset_list:
+            if offset>=0&offset<20:wt_array.append(1)
+            elif offset>=20&offset<40:wt_array.append(5)
+            elif offset>=40&offset<60:wt_array.append(10)
+            elif offset>=60&offset<80:wt_array.append(15)
+            elif offset>=80&offset<100:wt_array.append(20)
+            else:wt_array.append(30)
+        return np.array(wt_array)
+            
     N = np.sum([len(dataset.y)*dataset.use for dataset in data])
-    return [np.sign(dataset.y - sim)*(dataset.y - sim)**2/dataset.error**2
-        for (dataset, sim) in zip(data,simulations)]
+    return [(dataset.y - sim)**2/dataset.error**2 for (dataset, sim) in zip(data,simulations)]
 chi2bars.__div_dof__ = True
 
+def chibars(simulations, data):
+    ''' Weighted chi squared
+    '''
+    def _weight_fom(h,k,l_list=[]):
+        wt_array=[]
+        hk=str(int(h))+str(int(k))
+        for l in l_list:
+            temp_sign=np.array(bg_peaks[hk])-l
+            left,right=0,0
+            for sign in temp_sign:
+                if sign>=0:
+                    right=list(temp_sign).index(sign)
+                    left=right-1
+                    break
+            l_mid=(bg_peaks[hk][left]+bg_peaks[hk][right])/2
+            l_half_span=(bg_peaks[hk][right]-bg_peaks[hk][left])/2
+            l_span=abs(l-l_mid)
+            wt_array.append(50/(1+l_span/l_half_span*50))
+        #print wt_array
+        return np.array(wt_array)       
+    N = np.sum([len(dataset.y)*dataset.use for dataset in data])
+    return [np.sign(dataset.y - sim)*(dataset.y - sim)**2/dataset.error**2*_weight_fom(dataset.extra_data['h'][0],dataset.extra_data['k'][0],dataset.x)
+        for (dataset, sim) in zip(data,simulations)]
+chibars.__div_dof__ = True
+
+"""
 def chibars(simulations, data):
     ''' Weighted chi squared but without the squaring
     '''
@@ -278,7 +319,7 @@ def chibars(simulations, data):
     return [((dataset.y - sim)/dataset.error)
         for (dataset, sim) in zip(data,simulations)]
 chibars.__div_dof__ = True
-
+"""
 def logbars(simulations, data):
     ''' Weighted average absolute difference of the logarithm of the data
     '''
