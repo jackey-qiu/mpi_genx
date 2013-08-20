@@ -55,6 +55,13 @@ def extract_coor(domain,id):
     z=domain.z[index]+domain.dz1[index]+domain.dz2[index]+domain.dz3[index]
     return np.array([x,y,z])
 
+def extract_coor2(domain,id):
+    index=np.where(domain.id==id)[0][0]
+    x=domain.x[index]
+    y=domain.y[index]
+    z=domain.z[index]
+    return np.array([x,y,z])
+    
 def extract_component(domain,id,name_list):
     index=np.where(domain.id==id)[0][0]
     temp=[vars(domain)[name][index] for name in name_list]

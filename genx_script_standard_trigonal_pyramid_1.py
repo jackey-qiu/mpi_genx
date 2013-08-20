@@ -7,17 +7,11 @@ from operator import mul
 from numpy.linalg import inv
 from copy import deepcopy
 import domain_creator
-from domain_creator import add_atom,print_data,create_list,add_atom_in_slab,\
+from domain_creator import add_atom,print_data,create_list,add_atom_in_slab,extract_coor2,\
                            create_match_lib_before_fitting,create_match_lib_during_fitting,create_sorbate_ids
 
-##update from version 1##
-#the sorbate will be updated in sim function by rotation, so you need to specify the associated r and rotation angle and top angle
-#range during fitting, so dx dy dz for sorbates will be set to 0
-#and note the initial water position is anchored to the initial Pb position
-##updata from version 2##
-#now it can consider a clean domain (no sorbate), to do that simply set the pb_number to be 0    
-##update from version 3##
-#when you consider more than one pair of water molecules, you can set different position constraint                      
+#this module is inherited from genx_script_standard_new4.py with a different algorithem to add interfacial water molecules
+#now each water is anchored to one specific point, for which you have to give atom ID              
 '''
 the forms of ids and group names 
 ###########atm ids################
@@ -43,21 +37,20 @@ some print samples
 batch_path_head='/u1/uaf/cqiu/batchfile/'
 
 ##pars for sorbates##
-Pb_NUMBER=[1]#domain1 has 1 pb, sencond item represent the number of Pb in second domain
-Pb_ATTACH_ATOM=[[['O1_1_0','O1_3_0']]]#The initial lead postion (first one) for domain1 will form a bidentate mode with O1 AND O2
-Pb_ATTACH_ATOM_OFFSET=[[[None,None]]]#consider the unit offsets of the above two atms
+Pb_NUMBER=[0]#domain1 has 1 pb, sencond item represent the number of Pb in second domain
+Pb_ATTACH_ATOM=[[['O1_3_0','O1_2_0']]]#The initial lead postion (first one) for domain1 will form a bidentate mode with O1 AND O2
+Pb_ATTACH_ATOM_OFFSET=[[[None,'-x']]]#consider the unit offsets of the above two atms
 O_NUMBER=[[1]]#[[1,2]]means domain has two pb sorbate with one corresponding to monodentate the other one to bidentate
-TOP_ANGLE=[[1.8]]#open angel for the surface complex structure
-PHI=[[1.4]]#rotation angle for the surface complex structure
+TOP_ANGLE=[[1.26]]#open angel for the surface complex structure
+PHI=[[0.2]]#rotation angle for the surface complex structure
 R_S=[[1]]#vertical shiftment for monodentate mode
 R_TRI=[[2.]]#r value for tridentate mode
-MIRROR=False#consider mirror when adding sorbates
+MIRROR=True#consider mirror when adding sorbates
 
 ##pars for interfacial waters##
-WATER_NUMBER=[0]#must be even number considering 2 atoms each layer
-V_SHIFT=[[2],[2]]#vertical shiftment of water molecules, in unit of angstrom,two items each if consider two water pair
-R=[[3],[3]]#distance bw two waters at each layer in unit of angstrom
-ALPHA=[[3],[3]]#alpha angle used to cal the pos of water molecule
+WATER_NUMBER=[4]#how many water molecules to be considered
+V_SHIFT=[[2.7,2.7,2.7,2.7]]#vertical shiftment of water molecules, in unit of angstrom,two items each if consider two water pair
+WATER_ATTACH_ATOM=[['O1_1_0','O1_2_0','O1_3_0','O1_4_0']]
 
 ##chemically different domain type##
 DOMAIN=[1]#1 for half layer and 2 for full layer
@@ -280,22 +273,19 @@ for i in range(DOMAIN_NUMBER):
             vars()['gp_sorbates_set'+str(j+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*N+[vars()['domain'+str(int(i+1))+'B']]*N,atom_ids=sorbate_set_ids)
 
     if WATER_NUMBER[i]!=0:#add water molecules if any
-        for jj in range(WATER_NUMBER[i]/2):#note will add water pair (two oxygens) each time, and you can't add single water 
-            O_ids_a=vars()['Os_list_domain'+str(int(i+1))+'a'][jj*2:jj*2+2]
-            O_ids_b=vars()['Os_list_domain'+str(int(i+1))+'b'][jj*2:jj*2+2]
+        for jj in range(WATER_NUMBER[i]):#note will add water pair (two oxygens) each time, and you can't add single water 
+            O_ids_a=[vars()['Os_list_domain'+str(int(i+1))+'a'][jj]]
+            O_ids_b=[vars()['Os_list_domain'+str(int(i+1))+'b'][jj]]
             #set the first pb atm to be the ref atm(if you have two layers, same ref point but different height)
-            H2O_coors_a=[]
-            try:#anchor the first sorbate
-                H2O_coors_a=vars()['domain_class_'+str(int(i+1))].add_oxygen_pair2(domain=vars()['domain'+str(int(i+1))+'A'],O_ids=O_ids_a,ref_id=vars()['pb_list_domain'+str(int(i+1))+'a'][0],v_shift=V_SHIFT[i][jj],r=R[i][jj],alpha=ALPHA[i][jj])
-            except:#anchor O1 if without sorbate
-                H2O_coors_a=vars()['domain_class_'+str(int(i+1))].add_oxygen_pair2(domain=vars()['domain'+str(int(i+1))+'A'],O_ids=O_ids_a,ref_id='O1_1_0_D'+str(i+1)+'A',v_shift=V_SHIFT[i][jj],r=R[i][jj],alpha=ALPHA[i][jj])
-
-            add_atom(domain=vars()['domain'+str(int(i+1))+'B'],ref_coor=H2O_coors_a*[-1,1,1]-[-1.,0.06955,0.5],ids=O_ids_b,els=['O','O'])
+            H2O_coors_a=extract_coor2(vars()['domain'+str(int(i+1))+'A'],WATER_ATTACH_ATOM[i][jj]+'_D'+str(int(i+1))+'A')+[0,0,V_SHIFT[i][jj]/7.3707]
+            H2O_coors_b=H2O_coors_a*[-1,1,1]-[-1.,0.06955,0.5]
+            add_atom(domain=vars()['domain'+str(int(i+1))+'A'],ref_coor=[H2O_coors_a],ids=O_ids_a,els=['O'])
+            add_atom(domain=vars()['domain'+str(int(i+1))+'B'],ref_coor=[H2O_coors_b],ids=O_ids_b,els=['O'])
             #group water molecules at each layer (set equivalent the oc and u during fitting)
             M=len(O_ids_a)
             vars()['gp_waters_set'+str(jj+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*M+[vars()['domain'+str(int(i+1))+'B']]*M,atom_ids=O_ids_a+O_ids_b)
     #set variables
-    vars()['domain_class_'+str(int(i+1))].set_new_vars(head_list=['u_o_n','u_Fe_n','oc_n'],N_list=[4,3,7])
+    #vars()['domain_class_'+str(int(i+1))].set_new_vars(head_list=['u_o_n','u_Fe_n','oc_n'],N_list=[4,3,7])
     vars()['domain_class_'+str(int(i+1))].set_discrete_new_vars_batch(batch_path_head+vars()['discrete_vars_file_domain'+str(int(i+1))])
     
 ######################################do grouping###############################################
