@@ -1,5 +1,6 @@
 #consider two domains (both half layer but different sorbate environment, one with 1pb OH and one with none)
 import models.sxrd_test5_sym_new_test_new66_2_2 as model
+import models.raxs as model2
 from models.utils import UserVars
 import numpy as np
 import pickle
@@ -7,17 +8,10 @@ from operator import mul
 from numpy.linalg import inv
 from copy import deepcopy
 import domain_creator
-from domain_creator import add_atom,print_data,create_list,add_atom_in_slab,\
+from domain_creator import add_atom,print_data,create_list,add_atom_in_slab,create_sorbate_match_lib,merge_two_libs,\
                            create_match_lib_before_fitting,create_match_lib_during_fitting,create_sorbate_ids
 
-##update from version 1##
-#the sorbate will be updated in sim function by rotation, so you need to specify the associated r and rotation angle and top angle
-#range during fitting, so dx dy dz for sorbates will be set to 0
-#and note the initial water position is anchored to the initial Pb position
-##updata from version 2##
-#now it can consider a clean domain (no sorbate), to do that simply set the pb_number to be 0    
-##update from version 3##
-#when you consider more than one pair of water molecules, you can set different position constraint                      
+##version one for fitting RAXS and CTR simultaneously##                
 '''
 the forms of ids and group names 
 ###########atm ids################
@@ -44,14 +38,14 @@ batch_path_head='/u1/uaf/cqiu/batchfile/'
 
 ##pars for sorbates##
 Pb_NUMBER=[1]#domain1 has 1 pb, sencond item represent the number of Pb in second domain
-Pb_ATTACH_ATOM=[[['O1_1_0','O1_2_0']]]#The initial lead postion (first one) for domain1 will form a bidentate mode with O1 AND O2
+Pb_ATTACH_ATOM=[[['O1_2_0','O1_1_0']]]#The initial lead postion (first one) for domain1 will form a bidentate mode with O1 AND O2
 Pb_ATTACH_ATOM_OFFSET=[[[None,None]]]#consider the unit offsets of the above two atms
 O_NUMBER=[[1]]#[[1,2]]means domain has two pb sorbate with one corresponding to monodentate the other one to bidentate
-TOP_ANGLE=[[1.4]]#open angel for the surface complex structure
-PHI=[[5.0]]#rotation angle for the surface complex structure
+TOP_ANGLE=[[1.38]]#open angel for the surface complex structure
+PHI=[[4.4]]#rotation angle for the surface complex structure
 R_S=[[1]]#vertical shiftment for monodentate mode
 R_TRI=[[2.]]#r value for tridentate mode
-MIRROR=False#consider mirror when adding sorbates
+MIRROR=True#consider mirror when adding sorbates
 
 ##pars for interfacial waters##
 WATER_NUMBER=[0]#must be even number considering 2 atoms each layer
@@ -64,7 +58,7 @@ DOMAIN=[1]#1 for half layer and 2 for full layer
 DOMAIN_NUMBER=len(DOMAIN)
 
 ##cal bond valence switch##
-USE_BV=False
+USE_BV=True
 
 ##want to output the data for plotting?##
 PLOT=False
@@ -178,6 +172,10 @@ ref_domain1 =  model.Slab(c = 1.0,T_factor='B')
 ref_domain2 =  model.Slab(c = 1.0,T_factor='B')
 rgh=UserVars()
 rgh.new_var('beta', 0.0)
+scales=['scale_CTR','scale_RAXS']
+for scale in scales:
+    rgh.new_var(scale,1.)
+    
 ################################################build up ref domains############################################
 #add atoms for bulk and two ref domains (ref_domain1<half layer> and ref_domain2<full layer>)
 #In those two reference domains, the atoms are ordered according to first hight (z values), then y values
@@ -324,19 +322,27 @@ for i in range(DOMAIN_NUMBER):
 #####################################do bond valence matching###################################
 if USE_BV:
     for i in range(DOMAIN_NUMBER):
+        lib_sorbate=create_sorbate_match_lib(metal='Pb',O_list=[vars()['HO_list_domain'+str(int(i+1))+'a']],anchors=Pb_ATTACH_ATOM[i],anchor_offsets=Pb_ATTACH_ATOM_OFFSET[i],domain_tag=i+1)
         if DOMAIN[i]==1:
             vars()['match_lib_'+str(int(i+1))+'A']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[0],rem_atom_ids=['Fe1_2_0_D'+str(int(i+1))+'A','Fe1_3_0_D'+str(int(i+1))+'A']),atm_list=vars()['atm_list_'+str(int(i+1))+'A'],search_range=2.3)
-            vars()['match_lib_'+str(int(i+1))+'B']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[1],rem_atom_ids=['Fe1_8_0_D'+str(int(i+1))+'B','Fe1_9_0_D'+str(int(i+1))+'B']),atm_list=vars()['atm_list_'+str(int(i+1))+'B'],search_range=2.3)
+            vars()['match_lib_'+str(int(i+1))+'A']=merge_two_libs(vars()['match_lib_'+str(int(i+1))+'A'],lib_sorbate)
         elif DOMAIN[i]==2:
             vars()['match_lib_'+str(int(i+1))+'A']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[0],rem_atom_ids=None),atm_list=vars()['atm_list_'+str(int(i+1))+'A'],search_range=2.3)
-            vars()['match_lib_'+str(int(i+1))+'B']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[1],rem_atom_ids=None),atm_list=vars()['atm_list_'+str(int(i+1))+'B'],search_range=2.3)
+            vars()['match_lib_'+str(int(i+1))+'A']=merge_two_libs(vars()['match_lib_'+str(int(i+1))+'A'],lib_sorbate)
 
+
+#####################################specify f1f2 here###################################
+res_el='Pb'
+f1f2_file='raxs_pb_formatted.f1f2'
+f1f2=np.loadtxt(batch_path_head+f1f2_file)
 VARS=vars()#pass local variables to sim function
 ###################################fitting function part##########################################
 def Sim(data,VARS=VARS):
     VARS=VARS
     F =[]
+    bv=0
     beta=rgh.beta
+    SCALES=[getattr(rgh,scale) for scale in scales]
     total_wt=0
     domain={}
 
@@ -344,12 +350,7 @@ def Sim(data,VARS=VARS):
         #extract the fitting par values in the associated attribute and then do the scaling(initiation+processing, actually update the fitting parameter values)
         #VARS['domain_class_'+str(int(i+1))].init_sim_batch(batch_path_head+VARS['sim_batch_file_domain'+str(int(i+1))])
         #VARS['domain_class_'+str(int(i+1))].scale_opt_batch(batch_path_head+VARS['scale_operation_file_domain'+str(int(i+1))])
-        
-        #create matching lib dynamically during fitting
-        if USE_BV:
-            vars()['match_lib_fitting_'+str(i+1)+'A'],vars()['match_lib_fitting_'+str(i+1)+'B']=deepcopy(VARS['match_lib_'+str(i+1)+'A']),deepcopy(VARS['match_lib_'+str(i+1)+'B'])
-            create_match_lib_during_fitting(domain_class=VARS['domain_class_'+str(int(i+1))],domain=VARS['domain'+str(int(i+1))+'A'],atm_list=VARS['atm_list_'+str(int(i+1))+'A'],pb_list=VARS['pb_list_domain'+str(int(i+1))+'a'],HO_list=VARS['HO_list_domain'+str(int(i+1))+'a'],match_lib=vars()['match_lib_fitting_'+str(int(i+1))+'A'])
-        
+                
         #grap wt for each domain and cal the total wt
         vars()['wt_domain'+str(int(i+1))]=VARS['rgh_domain'+str(int(i+1))].wt
         total_wt=total_wt+vars()['wt_domain'+str(int(i+1))]
@@ -407,7 +408,41 @@ def Sim(data,VARS=VARS):
                 sorbate_ids=[pb_id_B]
                 sorbate_els=['Pb']
                 add_atom(domain=VARS['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a)*[-1,1,1]-[-1.,0.06955,0.5],ids=sorbate_ids,els=sorbate_els)
-    
+                #create matching lib dynamically during fitting
+        
+        if USE_BV:
+            N_sorbate=Pb_NUMBER[i]+sum(O_NUMBER[i])
+            N_water=WATER_NUMBER[i]
+            domain_class=None
+            #consider 6 surface atom layers plus the sorbates (not including water if any) to build super cell and remove the first iron layer if considring half layer
+            #only consdier domainA since domain B is symmetry related to domainA
+            if DOMAIN[i]==1:
+                domain_class=VARS['domain_class_'+str(i+1)].build_super_cell2(VARS['domain'+str(i+1)+'A'],[0,1]+range(4,14)+range(-(N_sorbate+N_water),-N_water))
+            elif DOMAIN[i]==2:
+                domain_class=VARS['domain_class_'+str(i+1)].build_super_cell2(VARS['domain'+str(i+1)+'A'],range(0,12)+range(-(N_sorbate+N_water),-N_water))
+            for key in VARS['match_lib_'+str(i+1)+'A'].keys():
+                #the searching radius is 2.5A considering the bond length of Pb-O or Fe-O is less than 2.5 A
+                #if the radius is set too high you may force a nonreasonable panalty to scale the bv
+                temp_bv=domain_class_1.cal_bond_valence1_new2(domain_class,key,2.5,VARS['match_lib_'+str(i+1)+'A'][key],50,False)['total_valence']
+                if 'O' in key:
+                    #For O you may consider possible binding to proton (+0.8) or hydrogen bond (0.2) and any possible combos among them
+                    #And note the maximum coordination number for O is 4
+                    case_tag=len(VARS['match_lib_'+str(i+1)+'A'][key])
+                    bond_valence_corrected_value=np.array([0.])
+                    if ((case_tag==1.)&(temp_bv<2)):
+                        bond_valence_corrected_value=np.array([1.8,1.6,1.2,1.,0.8,0.6,0.4,0.2,0.])
+                    elif ((case_tag==2.)&(temp_bv<2)):
+                        bond_valence_corrected_value=np.array([1.6,1.,0.8,0.4,0.2,0.])
+                    elif ((case_tag==3.)&(temp_bv<2)):
+                        bond_valence_corrected_value=np.array([0.8,0.2,0.])
+                    else:pass
+                    ref=np.sign(temp_bv+np.array(bond_valence_corrected_value)-2.)*(temp_bv+np.array(bond_valence_corrected_value)-2.)
+                    temp_bv=temp_bv+bond_valence_corrected_value[np.where(ref==np.min(ref))[0][0]]
+                    bv=bv+abs(2-temp_bv)
+                elif 'Fe' in key:
+                    bv=bv+abs(3-temp_bv)
+                elif 'Pb' in key:
+                    bv=bv+abs(2-temp_bv)    
     #set up multiple domains
     #note for each domain there are two sub domains which symmetrically related to each other, so have equivalent wt
     for i in range(DOMAIN_NUMBER):
@@ -415,10 +450,10 @@ def Sim(data,VARS=VARS):
         domain['domain'+str(int(i+1))+'B']={'slab':VARS['domain'+str(int(i+1))+'B'],'wt':0.5*vars()['wt_domain'+str(int(i+1))]/total_wt}
     
     #set up sample
-    sample = model.Sample(inst, bulk, domain, unitcell,coherence=False,surface_parms={'delta1':0.,'delta2':0.1391})
-
+ 
     #bond valence won't be integrated as part of data sets, but you can print out to check the bv as one of the post-fitting work
-    if USE_BV:
+    PRINT_BV=False
+    if USE_BV&PRINT_BV:
         bond_valence=[domain_class_1.cal_bond_valence3(domain=VARS['domain'+str(i+1)+'A'],match_lib=vars()['match_lib_fitting_'+str(i+1)+'A']) for i in range(DOMAIN_NUMBER)]
         for bv in bond_valence:
             for key in bv.keys():
@@ -429,14 +464,28 @@ def Sim(data,VARS=VARS):
         f=np.array([])   
         h = data_set.extra_data['h']
         k = data_set.extra_data['k']
-        l = data_set.x
+        x = data_set.x
+        y = data_set.extra_data['Y']
         LB = data_set.extra_data['LB']
         dL = data_set.extra_data['dL']
-        rough = (1-beta)/((1-beta)**2 + 4*beta*np.sin(np.pi*(l-LB)/dL)**2)**0.5#roughness model, double check LB and dL values are correctly set up in data file
-        f = rough*sample.calc_f(h, k, l)
-        F.append(abs(f))
-    #print_data(N_sorbate=4,N_atm=40,domain=domain1A,z_shift=1,save_file='D://model.xyz')    
+        if x[0]>100:#a sign for RAXS dataset(first column is Energy which is in the order of 1000 ev)
+            sample = model2.Sample(inst, bulk, domain, unitcell,coherence=False,surface_parms={'delta1':0.,'delta2':0.1391})
+            rough = (1-beta)/((1-beta)**2 + 4*beta*np.sin(np.pi*(y-LB)/dL)**2)**0.5#roughness model, double check LB and dL values are correctly set up in data file
+            f = SCALES[1]*rough*sample.calc_f(h, k, y,f1f2,res_el)
+            F.append(abs(f))
+        else:#First column is l for CTR dataset, l is a relative small number (less than 10 usually)
+            sample = model.Sample(inst, bulk, domain, unitcell,coherence=False,surface_parms={'delta1':0.,'delta2':0.1391})
+            rough = (1-beta)/((1-beta)**2 + 4*beta*np.sin(np.pi*(x-LB)/dL)**2)**0.5#roughness model, double check LB and dL values are correctly set up in data file
+            f = SCALES[0]*rough*sample.calc_f(h, k, x)
+            F.append(abs(f))
+      
+    #print_data(N_sorbate=6,N_atm=40,domain=domain1A,z_shift=1,half_layer=True,save_file='D://model2.xyz')    
     #export the model results for plotting if PLOT set to true
+    #print domain_class_1.cal_bond_valence1(domain_class_1.build_super_cell2(domain1A,[0,1,4,5]+range(-6,0)),'Pb1_D1A',3,False)
+    #print domain_class_1.cal_bond_valence1(domain_class_1.build_super_cell(domain1A),'O1_5_0_D1A',2.3,False)
+    #print domain_class_1.cal_bond_valence1(domain_class_1.build_super_cell2(domain1A,[0,1,4,5]+range(-6,0)),'Pb1_D1A',3,False)
+    #print domain_class_1.cal_bond_valence1_new2(domain_class_1.build_super_cell2(domain1A,[0,1,4,5]+range(-6,0)),'Pb1_D1A',3,['HO1_D1','O1_1_0','O1_2_0'],10,False)
+
     if PLOT:
         plot_data_container_experiment={}
         plot_data_container_model={}
@@ -473,4 +522,6 @@ def Sim(data,VARS=VARS):
         for hkl in hkls:
             plot_data_list.append([plot_data_container_experiment[hkl],plot_data_container_model[hkl]])
         pickle.dump(plot_data_list,open("D:\\Google Drive\\useful codes\\plotting\\temp_plot","wb"))
-    return F
+    #you may play with the weighting rule by setting eg 2**bv, 5**bv for the wt factor, that way you are pushing the GenX to find a fit btween 
+    #good fit (low wt factor) and a reasonable fit (high wt factor)
+    return F,10**bv

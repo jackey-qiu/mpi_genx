@@ -17,7 +17,9 @@ from domain_creator import add_atom,print_data,create_list,add_atom_in_slab,\
 ##updata from version 2##
 #now it can consider a clean domain (no sorbate), to do that simply set the pb_number to be 0    
 ##update from version 3##
-#when you consider more than one pair of water molecules, you can set different position constraint                      
+#when you consider more than one pair of water molecules, you can set different position constraint   
+##updata from version 4##
+#fom will be weighted by 10**bv_dif, where the bv_dif is the bond valence difficience                   
 '''
 the forms of ids and group names 
 ###########atm ids################
@@ -44,14 +46,14 @@ batch_path_head='/u1/uaf/cqiu/batchfile/'
 
 ##pars for sorbates##
 Pb_NUMBER=[1]#domain1 has 1 pb, sencond item represent the number of Pb in second domain
-Pb_ATTACH_ATOM=[[['O1_1_0','O1_2_0']]]#The initial lead postion (first one) for domain1 will form a bidentate mode with O1 AND O2
+Pb_ATTACH_ATOM=[[['O1_2_0','O1_1_0']]]#The initial lead postion (first one) for domain1 will form a bidentate mode with O1 AND O2
 Pb_ATTACH_ATOM_OFFSET=[[[None,None]]]#consider the unit offsets of the above two atms
 O_NUMBER=[[1]]#[[1,2]]means domain has two pb sorbate with one corresponding to monodentate the other one to bidentate
-TOP_ANGLE=[[1.4]]#open angel for the surface complex structure
-PHI=[[5.0]]#rotation angle for the surface complex structure
+TOP_ANGLE=[[1.38]]#open angel for the surface complex structure
+PHI=[[4.4]]#rotation angle for the surface complex structure
 R_S=[[1]]#vertical shiftment for monodentate mode
 R_TRI=[[2.]]#r value for tridentate mode
-MIRROR=False#consider mirror when adding sorbates
+MIRROR=True#consider mirror when adding sorbates
 
 ##pars for interfacial waters##
 WATER_NUMBER=[0]#must be even number considering 2 atoms each layer
@@ -64,7 +66,7 @@ DOMAIN=[1]#1 for half layer and 2 for full layer
 DOMAIN_NUMBER=len(DOMAIN)
 
 ##cal bond valence switch##
-USE_BV=False
+USE_BV=True
 
 ##want to output the data for plotting?##
 PLOT=False
@@ -336,6 +338,7 @@ VARS=vars()#pass local variables to sim function
 def Sim(data,VARS=VARS):
     VARS=VARS
     F =[]
+    bv=1
     beta=rgh.beta
     total_wt=0
     domain={}
@@ -418,7 +421,8 @@ def Sim(data,VARS=VARS):
     sample = model.Sample(inst, bulk, domain, unitcell,coherence=False,surface_parms={'delta1':0.,'delta2':0.1391})
 
     #bond valence won't be integrated as part of data sets, but you can print out to check the bv as one of the post-fitting work
-    if USE_BV:
+    PRINT_BV=False
+    if USE_BV&PRINT_BV:
         bond_valence=[domain_class_1.cal_bond_valence3(domain=VARS['domain'+str(i+1)+'A'],match_lib=vars()['match_lib_fitting_'+str(i+1)+'A']) for i in range(DOMAIN_NUMBER)]
         for bv in bond_valence:
             for key in bv.keys():
@@ -435,8 +439,18 @@ def Sim(data,VARS=VARS):
         rough = (1-beta)/((1-beta)**2 + 4*beta*np.sin(np.pi*(l-LB)/dL)**2)**0.5#roughness model, double check LB and dL values are correctly set up in data file
         f = rough*sample.calc_f(h, k, l)
         F.append(abs(f))
-    #print_data(N_sorbate=4,N_atm=40,domain=domain1A,z_shift=1,save_file='D://model.xyz')    
+    
+    bv_pb=abs(2-domain_class_1.cal_bond_valence1_new2(domain_class_1.build_super_cell2(domain1A,[0,1,4,5]+range(-6,0)),'Pb1_D1A',3,['HO1_D1','O1_1_0','O1_2_0'],10,False)['total_valence'])
+    bond_valence=sum([domain_class_1.cal_bv_deficience(domain_class_1.cal_bond_valence3(domain=VARS['domain'+str(i+1)+'A'],match_lib=vars()['match_lib_fitting_'+str(i+1)+'A'])) for i in range(DOMAIN_NUMBER)])
+    bv=10**(bv_pb+bond_valence)
+    
+    #print_data(N_sorbate=6,N_atm=40,domain=domain1A,z_shift=1,half_layer=True,save_file='D://model2.xyz')    
     #export the model results for plotting if PLOT set to true
+    #print domain_class_1.cal_bond_valence1(domain_class_1.build_super_cell2(domain1A,[0,1,4,5]+range(-6,0)),'Pb1_D1A',3,False)
+    #print domain_class_1.cal_bond_valence1(domain_class_1.build_super_cell(ref_domain1),'Fe1_9_0',3,False)
+    #print domain_class_1.cal_bond_valence1(domain_class_1.build_super_cell2(domain1A,[0,1,4,5]+range(-6,0)),'Pb1_D1A',3,False)
+    #print domain_class_1.cal_bond_valence1_new2(domain_class_1.build_super_cell2(domain1A,[0,1,4,5]+range(-6,0)),'Pb1_D1A',3,['HO1_D1','O1_1_0','O1_2_0'],10,False)
+
     if PLOT:
         plot_data_container_experiment={}
         plot_data_container_model={}
@@ -473,4 +487,5 @@ def Sim(data,VARS=VARS):
         for hkl in hkls:
             plot_data_list.append([plot_data_container_experiment[hkl],plot_data_container_model[hkl]])
         pickle.dump(plot_data_list,open("D:\\Google Drive\\useful codes\\plotting\\temp_plot","wb"))
-    return F
+
+    return F,bv

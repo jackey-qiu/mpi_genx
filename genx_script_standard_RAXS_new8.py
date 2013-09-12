@@ -1,5 +1,5 @@
 #consider two domains (both half layer but different sorbate environment, one with 1pb OH and one with none)
-import models.sxrd_test5_sym_new_test_new66_2_2 as model
+import models.raxs as model
 from models.utils import UserVars
 import numpy as np
 import pickle
@@ -7,7 +7,8 @@ from operator import mul
 from numpy.linalg import inv
 from copy import deepcopy
 import domain_creator
-from domain_creator import add_atom,print_data,create_list,add_atom_in_slab,\
+from random import uniform
+from domain_creator import add_atom,print_data,create_list,add_atom_in_slab,set_coor_grid,\
                            create_match_lib_before_fitting,create_match_lib_during_fitting,create_sorbate_ids
 
 ##update from version 1##
@@ -18,6 +19,16 @@ from domain_creator import add_atom,print_data,create_list,add_atom_in_slab,\
 #now it can consider a clean domain (no sorbate), to do that simply set the pb_number to be 0    
 ##update from version 3##
 #when you consider more than one pair of water molecules, you can set different position constraint                      
+##update from version 4##
+#now the coordination configuration of sorbate is trigonal bipyramid with lone electron pair sit on the middle layer
+#read hexahedra module for detail
+##unique in version 7##
+#different from all previous version, in this version the sorbates are put on the surface without considering possilbe geometrical
+#configuration (I call it brute force mode)
+#In this version you only have to specify the number of sorbates and the coordinates
+##unique in version 8##
+#use different scale factors to scale each individule dataset, the scale factor will be set as variables during fitting
+#See line 187-189, 303 and 347
 '''
 the forms of ids and group names 
 ###########atm ids################
@@ -43,21 +54,16 @@ some print samples
 batch_path_head='/u1/uaf/cqiu/batchfile/'
 
 ##pars for sorbates##
+METAL='Pb'
 Pb_NUMBER=[1]#domain1 has 1 pb, sencond item represent the number of Pb in second domain
-Pb_ATTACH_ATOM=[[['O1_1_0','O1_2_0']]]#The initial lead postion (first one) for domain1 will form a bidentate mode with O1 AND O2
-Pb_ATTACH_ATOM_OFFSET=[[[None,None]]]#consider the unit offsets of the above two atms
-O_NUMBER=[[1]]#[[1,2]]means domain has two pb sorbate with one corresponding to monodentate the other one to bidentate
-TOP_ANGLE=[[1.4]]#open angel for the surface complex structure
-PHI=[[5.0]]#rotation angle for the surface complex structure
-R_S=[[1]]#vertical shiftment for monodentate mode
-R_TRI=[[2.]]#r value for tridentate mode
-MIRROR=False#consider mirror when adding sorbates
+O_NUMBER=[[1]]#the number must fit in the trigonla bipyramid configuration (4 oxygen ligands in total including the anchors)
+SORBATE_COORS=[[[0,0.2,2.3],[0.2,0.3,2.5]]]
 
 ##pars for interfacial waters##
 WATER_NUMBER=[0]#must be even number considering 2 atoms each layer
-V_SHIFT=[[2],[2]]#vertical shiftment of water molecules, in unit of angstrom,two items each if consider two water pair
-R=[[3],[3]]#distance bw two waters at each layer in unit of angstrom
-ALPHA=[[3],[3]]#alpha angle used to cal the pos of water molecule
+V_SHIFT=[[2]]#vertical shiftment of water molecules, in unit of angstrom,two items each if consider two water pair
+R=[[3]]#distance bw two waters at each layer in unit of angstrom
+ALPHA=[[3]]#alpha angle used to cal the pos of water molecule
 
 ##chemically different domain type##
 DOMAIN=[1]#1 for half layer and 2 for full layer
@@ -82,8 +88,8 @@ for i in range(DOMAIN_NUMBER):
     vars()['rgh_domain'+str(int(i+1))]=UserVars()
     
     ##sorbate list (HO is oxygen binded to pb and Os is water molecule)
-    vars()['pb_list_domain'+str(int(i+1))+'a']=create_sorbate_ids(el='Pb',N=Pb_NUMBER[i],tag='_D'+str(int(i+1))+'A')
-    vars()['pb_list_domain'+str(int(i+1))+'b']=create_sorbate_ids(el='Pb',N=Pb_NUMBER[i],tag='_D'+str(int(i+1))+'B')
+    vars()['pb_list_domain'+str(int(i+1))+'a']=create_sorbate_ids(el=METAL,N=Pb_NUMBER[i],tag='_D'+str(int(i+1))+'A')
+    vars()['pb_list_domain'+str(int(i+1))+'b']=create_sorbate_ids(el=METAL,N=Pb_NUMBER[i],tag='_D'+str(int(i+1))+'B')
     vars()['HO_list_domain'+str(int(i+1))+'a']=create_sorbate_ids(el='HO',N=sum(O_NUMBER[i]),tag='_D'+str(int(i+1))+'A')
     vars()['HO_list_domain'+str(int(i+1))+'b']=create_sorbate_ids(el='HO',N=sum(O_NUMBER[i]),tag='_D'+str(int(i+1))+'B') 
     vars()['Os_list_domain'+str(int(i+1))+'a']=create_sorbate_ids(el='Os',N=WATER_NUMBER[i],tag='_D'+str(int(i+1))+'A')
@@ -162,7 +168,7 @@ for i in range(DOMAIN_NUMBER):
         vars()['sym_file_O_domain'+str(int(i+1))]=vars()['sym_file_O_domain'+str(int(i+1))]
 
     vars()['sym_file_Pb_domain'+str(int(i+1))]=np.array(vars()['pb_list_domain'+str(int(i+1))+'a']+vars()['pb_list_domain'+str(int(i+1))+'b'])
-    vars()['id_match_in_sym_domain'+str(int(i+1))]={'Fe':vars()['sym_file_Fe_domain'+str(int(i+1))],'O':vars()['sym_file_O_domain'+str(int(i+1))],'Pb':vars()['sym_file_Pb_domain'+str(int(i+1))]}
+    vars()['id_match_in_sym_domain'+str(int(i+1))]={'Fe':vars()['sym_file_Fe_domain'+str(int(i+1))],'O':vars()['sym_file_O_domain'+str(int(i+1))],METAL:vars()['sym_file_Pb_domain'+str(int(i+1))]}
 
 ##id list according to the order in the reference domain (used to set up ref domain)  
 ref_id_list_1=["O1_1_0","O1_2_0","Fe1_2_0","Fe1_3_0","O1_3_0","O1_4_0","Fe1_4_0","Fe1_6_0","O1_5_0","O1_6_0","O1_7_0","O1_8_0","Fe1_8_0","Fe1_9_0","O1_9_0","O1_10_0","Fe1_10_0","Fe1_12_0","O1_11_0","O1_12_0",\
@@ -178,6 +184,9 @@ ref_domain1 =  model.Slab(c = 1.0,T_factor='B')
 ref_domain2 =  model.Slab(c = 1.0,T_factor='B')
 rgh=UserVars()
 rgh.new_var('beta', 0.0)
+scales=['scale1','scale2','scale3','scale4','scale5','scale6','scale7','scale8','scale9','scale10']
+for scale in scales:
+    rgh.new_var(scale,1.)
 ################################################build up ref domains############################################
 #add atoms for bulk and two ref domains (ref_domain1<half layer> and ref_domain2<full layer>)
 #In those two reference domains, the atoms are ordered according to first hight (z values), then y values
@@ -198,7 +207,7 @@ add_atom_in_slab(ref_domain2,batch_path_head+'full_layer2.str')
 for i in range(DOMAIN_NUMBER): 
     vars()['sym_file_domain'+str(int(i+1))]={'Fe':batch_path_head+'Fe output file for Genx reading.txt',\
               'O':batch_path_head+'O output file for Genx reading'+str(sum(O_NUMBER[i])+WATER_NUMBER[i])+'_'+str(int(DOMAIN[i]))+'.txt',\
-              'Pb':batch_path_head+'Pb output file for Genx reading'+str(Pb_NUMBER[i])+'_'+str(int(DOMAIN[i]))+'.txt'}
+              METAL:batch_path_head+METAL+' output file for Genx reading'+str(Pb_NUMBER[i])+'_'+str(int(DOMAIN[i]))+'.txt'}
 
 ###################create domain classes and initiate the chemical equivalent domains####################
 #when change or create a new domain, make sure the terminated_layer (start from 0)set right
@@ -211,73 +220,23 @@ for i in range(DOMAIN_NUMBER):
     vars(vars()['domain_class_'+str(int(i+1))])['domainA']=vars()['domain'+str(int(i+1))+'A']
     vars(vars()['domain_class_'+str(int(i+1))])['domainB']=vars()['domain'+str(int(i+1))+'B']
     #Adding sorbates to domainA and domainB
+
     for j in range(Pb_NUMBER[i]):
-        pb_coors_a=[]
-        O_coors_a=[]
-        if len(Pb_ATTACH_ATOM[i][j])==1:#monodentate case
-            ids=[Pb_ATTACH_ATOM[i][j][0]+'_D'+str(int(i+1))+'A']
-            offset=Pb_ATTACH_ATOM_OFFSET[i][j]
-            pb_id=vars()['pb_list_domain'+str(int(i+1))+'a'][j]#pb_id is a str NOT list
-            O_index=[0]+[sum(O_NUMBER[i][0:ii+1]) for ii in range(len(O_NUMBER[i]))]
-            #for [1,2,2], which means inside one domain there are 1OH corresponding to pb1, 2 OH's corresponding to pb2 and so son.
-            #will return [0,1,3,5], O_id extract OH according to O_index
-            O_id=vars()['HO_list_domain'+str(int(i+1))+'a'][O_index[j]:O_index[j+1]]#O_ide is a list of str
-            sorbate_coors=vars()['domain_class_'+str(int(i+1))].adding_sorbate_pyramid_monodentate(domain=vars()['domain'+str(int(i+1))+'A'],top_angle=TOP_ANGLE[i][j],phi=PHI[i][j],r=R_S[i][j],attach_atm_ids=ids,offset=offset,pb_id=pb_id,O_id=O_id,mirror=MIRROR)           
-            pb_coors_a.append(sorbate_coors[0])
-            [O_coors_a.append(sorbate_coors[k]) for k in range(len(sorbate_coors))[1:]]
-            pb_id_B=vars()['pb_list_domain'+str(int(i+1))+'b'][j]
-            O_id_B=vars()['HO_list_domain'+str(int(i+1))+'b'][O_index[j]:O_index[j+1]]
-            #now put on sorbate on the symmetrically related domain
-            sorbate_ids=[pb_id_B]+O_id_B
-            sorbate_els=['Pb']+['O']*(len(O_id_B))
-            add_atom(domain=vars()['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a+O_coors_a)*[-1,1,1]-[-1.,0.06955,0.5],ids=sorbate_ids,els=sorbate_els)
-            #grouping sorbates (each set of Pb and HO, set the occupancy equivalent during fitting, looks like gp_sorbates_set1_D1)
-            #also group the oxygen sorbate to set equivalent u during fitting (looks like gp_HO_set1_D1)
-            sorbate_set_ids=[pb_id]+O_id+[pb_id_B]+O_id_B
-            HO_set_ids=O_id+O_id_B
-            N=len(sorbate_set_ids)/2
-            M=len(O_id)
-            vars()['gp_sorbates_set'+str(j+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*N+[vars()['domain'+str(int(i+1))+'B']]*N,atom_ids=sorbate_set_ids)
-            vars()['gp_HO_set'+str(j+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*M+[vars()['domain'+str(int(i+1))+'B']]*M,atom_ids=HO_set_ids)
-        elif len(Pb_ATTACH_ATOM[i][j])==2:#bidentate case
-            ids=[Pb_ATTACH_ATOM[i][j][0]+'_D'+str(int(i+1))+'A',Pb_ATTACH_ATOM[i][j][1]+'_D'+str(int(i+1))+'A']
-            offset=Pb_ATTACH_ATOM_OFFSET[i][j]
-            pb_id=vars()['pb_list_domain'+str(int(i+1))+'a'][j]
-            O_index=[0]+[sum(O_NUMBER[i][0:ii+1]) for ii in range(len(O_NUMBER[i]))]
-            O_id=vars()['HO_list_domain'+str(int(i+1))+'a'][O_index[j]:O_index[j+1]]
-            sorbate_coors=vars()['domain_class_'+str(int(i+1))].adding_sorbate_pyramid_distortion(domain=vars()['domain'+str(int(i+1))+'A'],top_angle=TOP_ANGLE[i][j],phi=PHI[i][j],edge_offset=[0,0],attach_atm_ids=ids,offset=offset,pb_id=pb_id,O_id=O_id,mirror=MIRROR)
-            pb_coors_a.append(sorbate_coors[0])
-            [O_coors_a.append(sorbate_coors[k]) for k in range(len(sorbate_coors))[1:]]
-            pb_id_B=vars()['pb_list_domain'+str(int(i+1))+'b'][j]
-            O_id_B=vars()['HO_list_domain'+str(int(i+1))+'b'][O_index[j]:O_index[j+1]]
-            #now put on sorbate on the symmetrically related domain
-            sorbate_ids=[pb_id_B]+O_id_B
-            sorbate_els=['Pb']+['O']*(len(O_id_B))
-            add_atom(domain=vars()['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a+O_coors_a)*[-1,1,1]-[-1.,0.06955,0.5],ids=sorbate_ids,els=sorbate_els)
-            #grouping sorbates (each set of Pb and HO, set the occupancy equivalent during fitting, looks like gp_sorbates_set1_D1)
-            #also group the oxygen sorbate to set equivalent u during fitting (looks like gp_HO_set1_D1)
-            sorbate_set_ids=[pb_id]+O_id+[pb_id_B]+O_id_B
-            HO_set_ids=O_id+O_id_B
-            N=len(sorbate_set_ids)/2
-            M=len(O_id)
-            vars()['gp_sorbates_set'+str(j+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*N+[vars()['domain'+str(int(i+1))+'B']]*N,atom_ids=sorbate_set_ids)
-            vars()['gp_HO_set'+str(j+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*M+[vars()['domain'+str(int(i+1))+'B']]*M,atom_ids=HO_set_ids)
-        elif len(Pb_ATTACH_ATOM[i][j])==3:#tridentate case (no oxygen sorbate here considering it is a trigonal pyramid structure)
-            ids=[Pb_ATTACH_ATOM[i][j][0]+'_D'+str(int(i+1))+'A',Pb_ATTACH_ATOM[i][j][1]+'_D'+str(int(i+1))+'A',Pb_ATTACH_ATOM[i][j][2]+'_D'+str(int(i+1))+'A']
-            offset=Pb_ATTACH_ATOM_OFFSET[i][j]
-            pb_id=vars()['pb_list_domain'+str(int(i+1))+'a'][j]
-            sorbate_coors=vars()['domain_class_'+str(int(i+1))].adding_pb_share_triple3(domain=vars()['domain'+str(int(i+1))+'A'],r=R_TRI[i][j],attach_atm_ids=ids,offset=offset,pb_id=pb_id)
-            pb_coors_a.append(sorbate_coors)
-            pb_id_B=vars()['pb_list_domain'+str(int(i+1))+'b'][j]
-            #now put on sorbate on the symmetrically related domain
-            sorbate_ids=[pb_id_B]
-            sorbate_els=['Pb']
-            add_atom(domain=vars()['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a)*[-1,1,1]-[-1.,0.06955,0.5],ids=sorbate_ids,els=sorbate_els)
-            #grouping sorbates (each set of Pb and HO, set the occupancy equivalent during fitting, looks like gp_sorbates_set1_D1)
-            #also group the oxygen sorbate to set equivalent u during fitting (looks like gp_HO_set1_D1)
-            sorbate_set_ids=[pb_id]+[pb_id_B]
-            N=len(sorbate_set_ids)/2
-            vars()['gp_sorbates_set'+str(j+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*N+[vars()['domain'+str(int(i+1))+'B']]*N,atom_ids=sorbate_set_ids)
+        domains=[vars()['domain'+str(int(i+1))+'A'],vars()['domain'+str(int(i+1))+'B']]
+        O_index=[0]+[sum(O_NUMBER[i][0:ii+1]) for ii in range(len(O_NUMBER[i]))]
+        sorbate_id_a=[vars()['pb_list_domain'+str(int(i+1))+'a'][j]]+vars()['HO_list_domain'+str(int(i+1))+'a'][O_index[j]:O_index[j+1]]
+        sorbate_id_b=[vars()['pb_list_domain'+str(int(i+1))+'b'][j]]+vars()['HO_list_domain'+str(int(i+1))+'b'][O_index[j]:O_index[j+1]]
+        els=[METAL]+['O']*(len(sorbate_id_a)-1)
+        grids=SORBATE_COORS[i]
+        set_coor_grid(domains,[sorbate_id_a,sorbate_id_b],els,grids)
+        #grouping sorbates (each set of Pb and HO, set the occupancy equivalent during fitting, looks like gp_sorbates_set1_D1)
+        #also group the oxygen sorbate to set equivalent u during fitting (looks like gp_HO_set1_D1)
+        sorbate_set_ids=sorbate_id_a+sorbate_id_b
+        HO_set_ids=sorbate_id_a[1:]+sorbate_id_b[1:]
+        N=len(sorbate_set_ids)/2
+        M=len(sorbate_id_a[1:])
+        vars()['gp_sorbates_set'+str(j+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*N+[vars()['domain'+str(int(i+1))+'B']]*N,atom_ids=sorbate_set_ids)
+        vars()['gp_HO_set'+str(j+1)+'_D'+str(int(i+1))]=vars()['domain_class_'+str(int(i+1))].grouping_discrete_layer(domain=[vars()['domain'+str(int(i+1))+'A']]*M+[vars()['domain'+str(int(i+1))+'B']]*M,atom_ids=HO_set_ids)
 
     if WATER_NUMBER[i]!=0:#add water molecules if any
         for jj in range(WATER_NUMBER[i]/2):#note will add water pair (two oxygens) each time, and you can't add single water 
@@ -331,16 +290,22 @@ if USE_BV:
             vars()['match_lib_'+str(int(i+1))+'A']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[0],rem_atom_ids=None),atm_list=vars()['atm_list_'+str(int(i+1))+'A'],search_range=2.3)
             vars()['match_lib_'+str(int(i+1))+'B']=create_match_lib_before_fitting(domain_class=vars()['domain_class_'+str(int(i+1))],domain=vars()['domain_class_'+str(int(i+1))].build_super_cell(ref_domain=vars()['domain_class_'+str(int(i+1))].create_equivalent_domains_2()[1],rem_atom_ids=None),atm_list=vars()['atm_list_'+str(int(i+1))+'B'],search_range=2.3)
 
+#####################################specify f1f2 here###################################
+res_el='Pb'
+f1f2_file='raxs_pb_formatted.f1f2'
+f1f2=np.loadtxt(batch_path_head+f1f2_file)
 VARS=vars()#pass local variables to sim function
 ###################################fitting function part##########################################
 def Sim(data,VARS=VARS):
     VARS=VARS
     F =[]
     beta=rgh.beta
+    SCALES=[getattr(rgh,scale) for scale in scales]
     total_wt=0
     domain={}
 
     for i in range(DOMAIN_NUMBER):
+        #do this part by fitting u and OC instead
         #extract the fitting par values in the associated attribute and then do the scaling(initiation+processing, actually update the fitting parameter values)
         #VARS['domain_class_'+str(int(i+1))].init_sim_batch(batch_path_head+VARS['sim_batch_file_domain'+str(int(i+1))])
         #VARS['domain_class_'+str(int(i+1))].scale_opt_batch(batch_path_head+VARS['scale_operation_file_domain'+str(int(i+1))])
@@ -353,61 +318,7 @@ def Sim(data,VARS=VARS):
         #grap wt for each domain and cal the total wt
         vars()['wt_domain'+str(int(i+1))]=VARS['rgh_domain'+str(int(i+1))].wt
         total_wt=total_wt+vars()['wt_domain'+str(int(i+1))]
-
-        #update sorbates
-        for j in range(VARS['Pb_NUMBER'][i]):
-            pb_coors_a=[]
-            O_coors_a=[]
-            if len(VARS['Pb_ATTACH_ATOM'][i][j])==1:#monodentate case
-                top_angle=getattr(VARS['rgh_domain'+str(int(i+1))],'top_angle')
-                phi=getattr(VARS['rgh_domain'+str(int(i+1))],'phi')
-                r=getattr(VARS['rgh_domain'+str(int(i+1))],'r')
-                ids=[VARS['Pb_ATTACH_ATOM'][i][j][0]+'_D'+str(int(i+1))+'A']
-                offset=VARS['Pb_ATTACH_ATOM_OFFSET'][i][j]
-                pb_id=VARS['pb_list_domain'+str(int(i+1))+'a'][j]#pb_id is a str NOT list
-                O_index=[0]+[sum(VARS['O_NUMBER'][i][0:ii+1]) for ii in range(len(VARS['O_NUMBER'][i]))]
-                #for [1,2,2], which means inside one domain there are 1OH corresponding to pb1, 2 OH's corresponding to pb2 and so son.
-                #will return [0,1,3,5], O_id extract OH according to O_index
-                O_id=VARS['HO_list_domain'+str(int(i+1))+'a'][O_index[j]:O_index[j+1]]#O_ide is a list of str
-                sorbate_coors=VARS['domain_class_'+str(int(i+1))].adding_sorbate_pyramid_monodentate(domain=VARS['domain'+str(int(i+1))+'A'],top_angle=top_angle,phi=phi,r=r,attach_atm_ids=ids,offset=offset,pb_id=pb_id,O_id=O_id,mirror=VARS['MIRROR'])           
-                pb_coors_a.append(sorbate_coors[0])
-                [O_coors_a.append(sorbate_coors[k]) for k in range(len(sorbate_coors))[1:]]
-                pb_id_B=VARS['pb_list_domain'+str(int(i+1))+'b'][j]
-                O_id_B=VARS['HO_list_domain'+str(int(i+1))+'b'][O_index[j]:O_index[j+1]]
-                #now put on sorbate on the symmetrically related domain
-                sorbate_ids=[pb_id_B]+O_id_B
-                sorbate_els=['Pb']+['O']*(len(O_id_B))
-                add_atom(domain=VARS['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a+O_coors_a)*[-1,1,1]-[-1.,0.06955,0.5],ids=sorbate_ids,els=sorbate_els)
-            elif len(VARS['Pb_ATTACH_ATOM'][i][j])==2:#bidentate case
-                top_angle=getattr(VARS['rgh_domain'+str(int(i+1))],'top_angle')
-                phi=getattr(VARS['rgh_domain'+str(int(i+1))],'phi')
-                ids=[VARS['Pb_ATTACH_ATOM'][i][j][0]+'_D'+str(int(i+1))+'A',VARS['Pb_ATTACH_ATOM'][i][j][1]+'_D'+str(int(i+1))+'A']
-                offset=VARS['Pb_ATTACH_ATOM_OFFSET'][i][j]
-                pb_id=VARS['pb_list_domain'+str(int(i+1))+'a'][j]
-                O_index=[0]+[sum(VARS['O_NUMBER'][i][0:ii+1]) for ii in range(len(VARS['O_NUMBER'][i]))]
-                O_id=VARS['HO_list_domain'+str(int(i+1))+'a'][O_index[j]:O_index[j+1]]
-                sorbate_coors=VARS['domain_class_'+str(int(i+1))].adding_sorbate_pyramid_distortion(domain=VARS['domain'+str(int(i+1))+'A'],top_angle=top_angle,phi=phi,edge_offset=[0,0],attach_atm_ids=ids,offset=offset,pb_id=pb_id,O_id=O_id,mirror=VARS['MIRROR'])
-                pb_coors_a.append(sorbate_coors[0])
-                [O_coors_a.append(sorbate_coors[k]) for k in range(len(sorbate_coors))[1:]]
-                pb_id_B=VARS['pb_list_domain'+str(int(i+1))+'b'][j]
-                O_id_B=VARS['HO_list_domain'+str(int(i+1))+'b'][O_index[j]:O_index[j+1]]
-                #now put on sorbate on the symmetrically related domain
-                sorbate_ids=[pb_id_B]+O_id_B
-                sorbate_els=['Pb']+['O']*(len(O_id_B))
-                add_atom(domain=VARS['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a+O_coors_a)*[-1,1,1]-[-1.,0.06955,0.5],ids=sorbate_ids,els=sorbate_els)
-            elif len(VARS['Pb_ATTACH_ATOM'][i][j])==3:#tridentate case (no oxygen sorbate here considering it is a trigonal pyramid structure)
-                r=getattr(VARS['rgh_domain'+str(int(i+1))],'r')
-                ids=[VARS['Pb_ATTACH_ATOM'][i][j][0]+'_D'+str(int(i+1))+'A',VARS['Pb_ATTACH_ATOM'][i][j][1]+'_D'+str(int(i+1))+'A',VARS['Pb_ATTACH_ATOM'][i][j][2]+'_D'+str(int(i+1))+'A']
-                offset=VARS['Pb_ATTACH_ATOM_OFFSET'][i][j]
-                pb_id=VARS['pb_list_domain'+str(int(i+1))+'a'][j]
-                sorbate_coors=VARS['domain_class_'+str(int(i+1))].adding_pb_share_triple3(domain=VARS['domain'+str(int(i+1))+'A'],r=r,attach_atm_ids=ids,offset=offset,pb_id=pb_id)
-                pb_coors_a.append(sorbate_coors)
-                pb_id_B=VARS['pb_list_domain'+str(int(i+1))+'b'][j]
-                #now put on sorbate on the symmetrically related domain
-                sorbate_ids=[pb_id_B]
-                sorbate_els=['Pb']
-                add_atom(domain=VARS['domain'+str(int(i+1))+'B'],ref_coor=np.array(pb_coors_a)*[-1,1,1]-[-1.,0.06955,0.5],ids=sorbate_ids,els=sorbate_els)
-    
+        
     #set up multiple domains
     #note for each domain there are two sub domains which symmetrically related to each other, so have equivalent wt
     for i in range(DOMAIN_NUMBER):
@@ -425,16 +336,18 @@ def Sim(data,VARS=VARS):
                 print "%s\t%5.3f\n"%(key,bv[key])
     
     #cal structure factor for each dataset in this for loop
+    i=0
     for data_set in data:
         f=np.array([])   
         h = data_set.extra_data['h']
         k = data_set.extra_data['k']
-        l = data_set.x
+        l = data_set.extra_data['l']
         LB = data_set.extra_data['LB']
         dL = data_set.extra_data['dL']
         rough = (1-beta)/((1-beta)**2 + 4*beta*np.sin(np.pi*(l-LB)/dL)**2)**0.5#roughness model, double check LB and dL values are correctly set up in data file
-        f = rough*sample.calc_f(h, k, l)
+        f = SCALES[i]*rough*sample.calc_f(h, k, l,f1f2,res_el)
         F.append(abs(f))
+        i=+1
     #print_data(N_sorbate=4,N_atm=40,domain=domain1A,z_shift=1,save_file='D://model.xyz')    
     #export the model results for plotting if PLOT set to true
     if PLOT:
